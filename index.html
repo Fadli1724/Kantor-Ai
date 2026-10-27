@@ -281,13 +281,20 @@ rb.onclick=()=>{rp.classList.add('show');rrender()};$('rx').onclick=()=>rp.class
 const kb=document.createElement('button'),kp=document.createElement('div');
 kb.className='chip';$('chips').prepend(kb);
 kp.id='kp';kp.innerHTML='<b>Pengaturan AI</b><div class="kt">Pilih penyedia lalu tempel API key. Disimpan hanya di browser ini dan hanya dikirim ke penyedia yang kamu pilih.</div><select id="kv"><option value="groq">Groq (key gsk_...)</option><option value="xai">xAI Grok (key xai-...)</option></select><input id="ki" type="password" placeholder="API key" autocomplete="off"><input id="km" placeholder="Model (kosongkan untuk bawaan)" autocomplete="off"><div id="kr"><button id="ks">Simpan &amp; tes</button><button id="kd">Hapus key</button><button id="kc">Tutup</button></div><div id="kz"></div>';document.body.appendChild(kp);
+async function autoModel(){
+ const r=await fetch(ST.get('gp')=='xai'?'https://api.x.ai/v1/models':'https://api.groq.com/openai/v1/models',{headers:{Authorization:'Bearer '+ST.get('gk')}});
+ const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error('API '+r.status+': gagal mengambil daftar model');
+ const ids=(d.data||[]).map(m=>m.id).filter(i=>!/whisper|guard|tts|playai|embed|image|vision/i.test(i));
+ return ['llama-3.3-70b-versatile','llama-3.1-8b-instant','openai/gpt-oss-20b','openai/gpt-oss-120b','grok-4.6'].find(x=>ids.includes(x))||ids[0]}
 function kbl(){kb.textContent=ST.get('gk')?'🔑 AI aktif':'🔑 API Key'}kbl();
 kb.onclick=()=>{$('kv').value=ST.get('gp')||'groq';$('ki').value='';$('km').value=ST.get('gm');$('kz').textContent=ST.get('gk')?'Key tersimpan. Isi kolom key untuk menggantinya.':'';kp.classList.add('show')};
 $('kc').onclick=()=>kp.classList.remove('show');
 $('kd').onclick=()=>{ST.set('gk','');kbl();$('kz').textContent='Key dihapus.'};
 $('ks').onclick=async()=>{const v=$('ki').value.trim(),z=$('kz');if(v)ST.set('gk',v);ST.set('gp',$('kv').value);ST.set('gm',$('km').value.trim());kbl();
  if(!ST.get('gk')){z.textContent='Isi API key dulu.';return}
- z.textContent='Menguji koneksi...';try{await groq([{role:'user',content:'Balas satu kata: siap'}],false,10,0);z.textContent='✅ Terhubung. Kamu bisa kirim perintah sekarang.';log('Sistem','AI terhubung.')}catch(e){z.textContent='❌ '+e.message}};
+ z.textContent='Menguji koneksi...';const ping=()=>groq([{role:'user',content:'Balas satu kata: siap'}],false,10,0);
+ try{try{await ping()}catch(e){if(!/ 404/.test(e.message)||$('km').value.trim())throw e;z.textContent='Model bawaan tidak tersedia, mencari model lain...';const m=await autoModel();if(!m)throw e;ST.set('gm',m);await ping();$('km').value=m}
+ z.textContent='✅ Terhubung dengan model '+(ST.get('gm')||'bawaan')+'. Kamu bisa kirim perintah sekarang.';log('Sistem','AI terhubung.')}catch(e){z.textContent='❌ '+e.message}};
 if(!HAS())log('Sistem','Tekan tombol 🔑 API Key untuk menghubungkan AI Groq.');$('in').onkeydown=e=>{if(e.key=='Enter')$('go').onclick()};
 log('Sistem','Kantor dibuka. Tim: '+DEF.map(d=>d[0]+' ('+d[1]+')').join(', ')+'.');
 

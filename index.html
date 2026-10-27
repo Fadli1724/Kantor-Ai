@@ -217,12 +217,12 @@ const SK={Pixel:/desain|logo|poster|gambar|banner|visual|\bui\b/,Byte:/kode|codi
 const WORKER_URL='https://kantor-ai.fadli172409.workers.dev';/* isi dengan URL Cloudflare Worker kamu, contoh https://kantor-ai.namamu.workers.dev */
 async function task(s){
  let items;
- if(WORKER_URL){try{rook('Sebentar Bos, aku susun rencananya dulu...');const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:s})});const j=await r.json();items=j.plan.filter(p=>bots.some(b=>b.name==p.agent&&b.i>0)).map(p=>({n:p.agent,t:String(p.task).slice(0,60),d:Math.min(25,Math.max(6,+p.seconds||10))}))}catch(e){log('Sistem','Backend tidak terjangkau, pakai mode lokal.')}}
+ if(WORKER_URL){try{rook('Sebentar Bos, aku susun rencananya dulu...');const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:s})});const j=await r.json();if(!j.plan)throw new Error(j.error||'balasan tidak valid');items=j.plan.filter(p=>bots.some(b=>b.name==p.agent&&b.i>0)).map(p=>({n:p.agent,t:String(p.task).slice(0,60),d:Math.min(25,Math.max(6,+p.seconds||10))}))}catch(e){log('Sistem','Backend gagal: '+e.message+'. Pakai mode lokal.')}}
  if(!items||!items.length){let names=Object.keys(SK).filter(n=>SK[n].test(s));if(!names.length)names=['Nova','Sage'];items=names.map(n=>({n,t:TXT[n],d:9+Math.random()*6}))}
  const ws=items.map(it=>bots.find(b=>b.name==it.n)),R0=bots[0];let left=ws.length;
  tgt.set(0,3,-3.5);rad=Math.min(rad,innerWidth<innerHeight?34:22);ph=.9;
  items.forEach(it=>{it.res={agent:it.n,task:it.t,status:'work',text:''};RES.unshift(it.res);it.done=false;
-  if(WORKER_URL)fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'work',agent:it.n,task:it.t,text:s})}).then(r=>r.json()).then(j=>{it.res.text=j.result||j.error||'(kosong)'}).catch(()=>{it.res.text='Gagal mengambil hasil dari backend.'}).finally(()=>{it.res.status='done';it.done=true;rbadge()});
+  if(WORKER_URL)fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'work',agent:it.n,task:it.t,text:s})}).then(r=>r.json()).then(j=>{it.res.text=j.result||j.error||'(kosong)'}).catch(e=>{it.res.text='Gagal: '+e.message}).finally(()=>{it.res.status='done';it.done=true;rbadge()});
   else{it.res.text='Mode lokal: hasil asli butuh backend AI. Isi WORKER_URL dulu.';it.res.status='done';it.done=true}});
  rbadge();
  rook('Oke Bos Fadli. Aku pecah jadi '+ws.length+' tugas: '+items.map(it=>it.n+' '+it.t).join(', ')+'.');

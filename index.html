@@ -330,32 +330,32 @@ const LOC={senang:['Wah makasih Bos, jadi semangat!','Hehe, seneng banget denger
 const setMood=(r,m)=>{if(r){r.mood=m;r.mt=45}};
 function guess(s){return /bagus|mantap|hebat|makasih|terima kasih|keren|sayang|rajin/.test(s)?'senang':/jelek|payah|lambat|salah|bodoh|malas|lelet|marah/.test(s)?(Math.random()<.5?'kesal':'kecewa'):/sedih|capek|lelah|kasihan/.test(s)?'sedih':/semangat|ayo|gas/.test(s)?'semangat':'tenang'}
 function chat(t,tg){const s=t.toLowerCase();tg.forEach(r=>{(async()=>{let out=null,m=null;
- if(ST.get('gk')){try{out=await groq([{role:'system',content:`Kamu ${r.name}, ${ROLES[r.name]}. Sifatmu: ${PERS[r.name]}. Suasana hatimu sekarang: ${r.mood}. Bos Fadli mengajakmu bicara. Balas 1-2 kalimat pendek, bahasa Indonesia santai, hidup, sesuai sifat dan emosimu (boleh marah, sedih, kecewa, senang). Akhiri dengan mood barumu persis satu dari [senang] [sedih] [kesal] [kecewa] [semangat] [capek] [tenang].`},{role:'user',content:t}],false,150,.9)}catch(e){out=null}}
+ if(ST.get('gk')){try{out=await groq([{role:'system',content:`Kamu ${r.name}, ${ROLES[r.name]}. Sifatmu: ${PERS[r.name]}. Suasana hatimu sekarang: ${r.mood}. Bos Fadli mengajakmu bicara. Jawab pertanyaan atau ajakan Bos sesuai topiknya dengan benar dan berguna (maksimal 4 kalimat), bahasa Indonesia santai, dengan gaya dan emosi sesuai sifatmu (boleh marah, sedih, kecewa, senang). Jangan mengelak dari topik. Akhiri dengan mood barumu persis satu dari [senang] [sedih] [kesal] [kecewa] [semangat] [capek] [tenang].`},{role:'user',content:t}],false,300,.9)}catch(e){out=null;log('Sistem','AI gagal menjawab: '+e.message)}}
  if(out){const mm=out.match(/\[(senang|sedih|kesal|kecewa|semangat|capek|tenang)\]\s*$/i);m=mm&&mm[1].toLowerCase();out=out.replace(/\[[^\]]*\]\s*$/,'').trim()}
- if(!out){m=guess(s);const L=LOC[m];out=L[Math.random()*L.length|0]}
+ if(!out){m=guess(s);const L=LOC[m];out=L[Math.random()*L.length|0]+(ST.get('gk')?'':' (Tempel API key lewat tombol 🔑 supaya aku bisa jawab topik apa saja.)')}
  setMood(r,m||guess(s));r.say(out)})()})}
 function save(n,txt){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
 function dl(x){let t=x.text,ext='md';const m=t.match(/```(\w*)\n([\s\S]*?)```/);if(m){t=m[2];ext={html:'html',svg:'svg',xml:'svg',js:'js',javascript:'js',python:'py',css:'css',json:'json'}[m[1].toLowerCase()]||'txt'}save(x.agent+'-'+x.task.replace(/[^\w]+/g,'_').slice(0,24)+'.'+ext,t)}
 function dlCmd(tg){const ok=RES.filter(x=>x.status=='done'&&x.text);if(!ok.length){rook('Belum ada hasil kerja untuk diunduh, Bos.');return}
  if(tg.length==bots.length){save('Hasil-Kantor.md',ok.map(x=>'# '+x.agent+' - '+x.task+'\n\n'+x.text).join('\n\n---\n\n'));rook('Semua hasil sudah diunduh, Bos.');return}
  tg.forEach(r=>{const x=ok.find(q=>q.agent==r.name);if(x){dl(x);r.say('Siap Bos, hasilku sudah diunduh.')}else r.say('Aku belum punya hasil kerja, Bos.')})}
-function visit(tg,txt,all){const B=boss,r=tg[0];if(B.cur||B.q.length)return;
+function visit(tg,txt,all,cb){const B=boss,r=tg[0];if(B.cur||B.q.length){cb();return}
  const dest=all?'A3':r.node;let p=route(B.node,dest);if(!all&&p.length)p=p.slice(0,-1);const mid=p.length?p[p.length-1]:B.node;
- Q(B,[...(B.sat?[{k:'stand'}]:[]),{k:'go',to:mid},{k:'fn',fn:()=>{const a=N[mid];B.yaw=Math.atan2(r.pos.x-a[0],r.pos.z-a[2]);B.say(txt.slice(0,80))}},{k:'wait',d:3.5},{k:'go',to:'PB'},{k:'face',y:'PB'},{k:'sit'},{k:'fn',fn:()=>{B.tg.type=1}}])}
+ Q(B,[...(B.sat?[{k:'stand'}]:[]),{k:'go',to:mid},{k:'fn',fn:()=>{const a=N[mid];B.yaw=Math.atan2(r.pos.x-a[0],r.pos.z-a[2]);B.say(txt.slice(0,80))}},{k:'wait',d:1.6},{k:'fn',fn:cb},{k:'wait',d:2},{k:'go',to:'PB'},{k:'face',y:'PB'},{k:'sit'},{k:'fn',fn:()=>{B.tg.type=1}}])}
 function cmd(t){t=t.trim();if(!t)return;log('Bos Fadli',t);
  const m=t.match(/^((?:@\w+\s*)+)([\s\S]*)$/);
  if(!m){rook('Awali perintah dengan @semua, @NamaRobot, atau @Nama@Nama ya Bos. Contoh: @Nova tulis caption');return}
  const tags=m[1].match(/@\w+/g).map(x=>x.slice(1).toLowerCase()),rest=m[2].trim()||'halo';
  let tg;if(tags.includes('semua'))tg=bots.slice();else{tg=tags.map(n=>bots.find(b=>b.name.toLowerCase()==n));if(tg.some(b=>!b)){rook('Robot itu tidak ada Bos. Yang ada: '+bots.map(b=>b.name).join(', '));return}}
- TG=tg;visit(tg,rest,tags.includes('semua'));cmd0(rest,tg)}
-function cmd0(t,tg){t=t.trim();const s=t.toLowerCase();if(/\b(download|unduh)\b/.test(s)){dlCmd(TG);return}if(/renang|berenang|kolam/.test(s)){group('swim','Siap Bos, waktunya berenang!');return}if(/tidur|bobo/.test(s)){lightCmd(false);return}
+ visit(tg,rest,tags.includes('semua'),()=>{TG=tg;cmd0(rest,tg)})}
+function cmd0(t,tg){t=t.trim();const s=t.toLowerCase();if(/\b(download|unduh)\b/.test(s)){dlCmd(TG);return}if(/\?\s*$|^(apa|siapa|kenapa|mengapa|bagaimana|gimana|kapan|dimana|di mana|berapa|apakah|jelaskan|ceritakan)\b/.test(s)){chat(t,TG);return}if(/renang|berenang|kolam/.test(s)){group('swim','Siap Bos, waktunya berenang!');return}if(/tidur|bobo/.test(s)){lightCmd(false);return}
  if(/lampu/.test(s)&&/(matikan|mati|padam|matiin)/.test(s))lightCmd(false);
  else if(/lampu/.test(s)&&/(nyala|hidup)/.test(s))lightCmd(true);
- else if(/istirahat|santai|rehat|break/.test(s))group('relax','Siap Bos, semua istirahat dulu.');
+ else if(s.length<30&&/istirahat|santai|rehat|break/.test(s))group('relax','Siap Bos, semua istirahat dulu.');
  else if(/sholat|salat|solat|ibadah/.test(s))group('pray','Siap Bos, waktunya ibadah. Gantian ya di musholla.');
- else if(/kopi|ngopi/.test(s))group('coffee','Siap Bos, semua ngopi dulu.');
- else if(/kerja|meja/.test(s)&&!Object.values(SK).some(r=>r.test(s)))group('work','Siap Bos, semua balik ke meja masing-masing.');
- else if(!/buat|bikin|tulis|susun|rancang|kerjakan|hitung|cari|siapkan/.test(s)&&!Object.values(SK).some(r=>r.test(s)))chat(t,TG);else task(s,TG?TG.map(b=>b.name):null)}
+ else if(s.length<24&&/kopi|ngopi/.test(s))group('coffee','Siap Bos, semua ngopi dulu.');
+ else if(s.length<24&&/kerja|meja/.test(s)&&!Object.values(SK).some(r=>r.test(s)))group('work','Siap Bos, semua balik ke meja masing-masing.');
+ else if(!/^(tolong\s+|coba\s+|bisa\s+)?(buat|bikin|tulis|susun|rancang|kerjakan|hitung|siapkan|desain|riset|analisa|analisis|rangkum|cari)/.test(s))chat(t,TG);else task(s,TG?TG.map(b=>b.name):null)}
 
 /* ---------- Log & UI ---------- */
 const LL=[];

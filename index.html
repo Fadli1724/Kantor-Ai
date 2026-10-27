@@ -35,6 +35,11 @@ body{background:#1b2233;color:var(--ink);font:14px system-ui,sans-serif;overflow
 #rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 #rx{border:0;background:var(--ln);color:var(--ink);border-radius:8px;padding:4px 10px;font:inherit}
 .rc{border-top:1px solid var(--ln);padding:8px 0;white-space:pre-wrap;line-height:1.45}
+#go{background:linear-gradient(90deg,#ff2bd6,#7a4bff)!important;box-shadow:0 0 12px #ff2bd699}
+.chip,#in{background:rgba(10,6,30,.82)!important;color:#dffcff!important;border:1px solid #00e5ff99!important;box-shadow:0 0 8px #00e5ff44}
+.tag{background:rgba(10,6,30,.78)!important;color:#e8fbff!important;border:1px solid #00f0ff!important;box-shadow:0 0 6px #00f0ff88}
+#in::placeholder{color:#8fb8c4}
+#log{text-shadow:0 0 6px #00e5ff,0 1px 3px #000}
 .bub{display:none;background:#fff;color:#111;border-radius:10px;padding:5px 8px;max-width:170px;white-space:normal;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.35);margin-bottom:3px}
 </style></head><body>
 <canvas id="cv"></canvas><div id="ov"></div>
@@ -43,31 +48,36 @@ body{background:#1b2233;color:var(--ink);font:14px system-ui,sans-serif;overflow
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const T=THREE,$=i=>document.getElementById(i),PI=Math.PI;
-const R=new T.WebGLRenderer({canvas:$('cv'),antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;R.toneMapping=T.ACESFilmicToneMapping;R.toneMappingExposure=1.1;R.outputEncoding=T.sRGBEncoding;
+const R=new T.WebGLRenderer({canvas:$('cv'),antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;R.toneMapping=T.ACESFilmicToneMapping;R.toneMappingExposure=.95;R.outputEncoding=T.sRGBEncoding;
 const S=new T.Scene(),cam=new T.PerspectiveCamera(45,1,.1,300);
-const hemi=new T.HemisphereLight(0xffffff,0x445066,1),sun=new T.DirectionalLight(0xffffff,.8);sun.position.set(-8,18,12);S.add(hemi,sun);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);{const c=sun.shadow.camera;c.left=-18;c.right=18;c.top=14;c.bottom=-14;c.near=1;c.far=60}sun.shadow.bias=-.0004;
-const pls=[-6,0,6].map(x=>{const l=new T.PointLight(0xfff1cc,0,16);l.position.set(x,5.6,-4);S.add(l);return l});
-const cL=new T.Color(0x2a3550),cD=new T.Color(0x060810);S.background=new T.Color();
-const mats={},M=c=>mats[c]||(mats[c]=new T.MeshStandardMaterial({color:c,roughness:.75,metalness:.05}));
+const hemi=new T.HemisphereLight(0x8a7bff,0x120a3a,1),sun=new T.DirectionalLight(0xb8a8ff,.8);sun.position.set(-8,18,12);S.add(hemi,sun);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);{const c=sun.shadow.camera;c.left=-18;c.right=18;c.top=14;c.bottom=-14;c.near=1;c.far=60}sun.shadow.bias=-.0004;
+const pls=[-6,0,6].map(x=>{const l=new T.PointLight(0x9fd8ff,0,16);l.position.set(x,5.6,-4);S.add(l);return l});
+const cL=new T.Color(0x14082e),cD=new T.Color(0x030108);S.fog=new T.FogExp2(0x14082e,.011);S.background=new T.Color();
+const mats={},M=c=>mats[c]||(mats[c]=new T.MeshStandardMaterial({color:new T.Color(c).multiplyScalar(.72).lerp(new T.Color(0x2a1a6e),.15),roughness:.5,metalness:.15}));
 function bx(x,y,z,w,h,d,c,p){const m=new T.Mesh(new T.BoxGeometry(w,h,d),typeof c=='object'?c:M(c));m.position.set(x,y+h/2,z);m.castShadow=m.receiveShadow=true;(p||S).add(m);return m}
 function cyl(x,y,z,r,h,c){const m=new T.Mesh(new T.CylinderGeometry(r,r,h,16),M(c));m.position.set(x,y+h/2,z);S.add(m);return m}
 const wl=(x1,x2,z1,z2,y,h,c)=>bx((x1+x2)/2,y,(z1+z2)/2,Math.max(x2-x1,.14),h,Math.max(z2-z1,.14),c||0xdfe3ea);
 const stool=(x,y,z)=>{cyl(x,y,z,.04,.38,0x222831);cyl(x,y+.38,z,.2,.06,0x37474f)};
 
 /* ---------- Denah ---------- */
-bx(0,-.3,0,26,.3,22,0x252b3a);
-[[-7.5,5.75,5,4.5,0x7e57c2],[-3,5.75,4,4.5,0x2e7d32],[1.75,5.75,5.5,4.5,0x8d6e63],[5.75,5.75,2.5,4.5,0x4f9fbf]].forEach(a=>bx(a[0],0,a[1],a[2],.03,a[3],a[4]));
+bx(0,-.3,0,26,.3,22,0x0d0b24);
+[[-7.5,5.75,5,4.5,0x5b2cff],[-3,5.75,4,4.5,0x00a86b],[1.75,5.75,5.5,4.5,0xc2185b],[5.75,5.75,2.5,4.5,0x0097b8]].forEach(a=>bx(a[0],0,a[1],a[2],.03,a[3],a[4]));
 bx(0,0,1.8,20,.03,1.6,0x39404f);
 [[-10,-8.2],[-6.8,-3.7],[-2.3,1.05],[2.45,5.05],[6.45,7]].forEach(a=>wl(a[0],a[1],3.45,3.55,0,1.3));
 [-10,-5,-1,4.5,7].forEach(x=>wl(x-.07,x+.07,3.5,8,0,1.3));wl(-10,7,7.95,8.05,0,1.3);
-bx(0,2.75,-3.8,20,.25,8.4,0xc9a97c);
+bx(0,2.75,-3.8,20,.25,8.4,0x23264a);
 [[-9.7,-7.7],[9.7,-7.7],[-9.7,-.3],[-5,-.3],[0,-.3]].forEach(a=>cyl(a[0],0,a[1],.18,2.75,0x6b7280));
 wl(-10,10,-8.1,-7.95,3,1.6,0xaab4c4);wl(-10.07,-9.93,-8,.4,3,1.2,0xaab4c4);wl(9.93,10.07,-8,.4,3,1.6,0xaab4c4);
 wl(-10,8.2,.35,.45,3,.5,0xaab4c4);wl(9.7,10,.35,.45,3,.5,0xaab4c4);
 /* atap kaca + lampu */
 const roof=new T.Mesh(new T.BoxGeometry(20.4,.2,8.8),new T.MeshStandardMaterial({color:0x90caf9,transparent:true,opacity:.16,roughness:.1,metalness:.6}));roof.position.set(0,6.4,-3.8);S.add(roof);
 [[-9.9,-7.9],[9.9,-7.9],[-9.9,.3],[9.9,.3]].forEach(a=>bx(a[0],3,a[1],.25,3.4,.25,0x37474f));bx(0,6.2,-7.9,20.4,.2,.25,0x37474f);bx(0,6.2,.3,20.4,.2,.25,0x37474f);
-const lampM=new T.MeshBasicMaterial({color:0xfff3c4}),cOn=new T.Color(0xfff3c4),cOff=new T.Color(0x2b2b2b);[-7.5,-3,1.5,6].forEach(x=>bx(x,6.05,-4,.3,.08,5,lampM).castShadow=false);
+const lampM=new T.MeshBasicMaterial({color:0x9ff6ff}),cOn=new T.Color(0x9ff6ff),cOff=new T.Color(0x2b2b2b);[-7.5,-3,1.5,6].forEach(x=>bx(x,6.05,-4,.3,.08,5,lampM).castShadow=false);
+/* neon cyberpunk */
+const nm=c=>new T.MeshBasicMaterial({color:c});
+[[-7.5,5,0xff2bd6],[-3,4,0x00f0ff],[1.75,5.5,0xffe600],[5.75,2.5,0x00ff9c]].forEach(a=>bx(a[0],1.3,3.45,a[1],.07,.12,nm(a[2])));
+bx(0,2.62,.5,20,.07,.07,nm(0x00f0ff));bx(0,2.62,-8,20,.07,.07,nm(0xff2bd6));bx(-10,2.62,-4,.07,.07,8.4,nm(0x00f0ff));bx(10,2.62,-4,.07,.07,8.4,nm(0xff2bd6));bx(0,3.0,.45,20,.05,.05,nm(0xff2bd6));
+[[-5,2,-4,0xff2bd6],[8.75,1.5,6.5,0x00e5ff],[1.75,1.5,5.5,0xffb000],[-7.5,1.5,5.5,0xaa66ff],[0,4.4,-4,0x00f0ff]].forEach(a=>{const l=new T.PointLight(a[3],1.4,10);l.position.set(a[0],a[1],a[2]);S.add(l)});
 for(let k=0;k<14;k++)bx(9,0,3.8-(k+.5)*3.6/14,1.4,3*(k+1)/14,3.6/14,k%2?0x8a8f9c:0x9aa0ad);
 /* ruang santai */
 [-8.5,-6.5].forEach(x=>{bx(x,0,7.6,1.8,.42,.8,0x5e35b1);bx(x,.42,7.9,1.8,.5,.2,0x4527a0)});bx(-7.5,0,6,.6,.3,.5,0xd7ccc8);
@@ -90,7 +100,7 @@ bx(0,0,-4,20,.03,8,0x8d6e63);bx(0,0,-8.1,20,2.75,.2,0xb0bec5);
 const BX=[];for(let i=0;i<8;i++){const x=-8.5+i*2.43;BX.push(x);bx(x,0,-6.3,1.1,.35,2,0x5d4037);bx(x,.35,-6.3,1,.2,1.9,0xe3f2fd);bx(x,.55,-7,.7,.12,.4,0xffffff);bx(x,0,-7.4,1.1,.9,.1,0x4e342e)}
 /* kolam renang */
 bx(8.75,0,6.5,2.8,.05,3.2,0x4fc3f7);bx(7.3,0,6.5,.12,.45,3.2,0xeceff1);bx(10.2,0,6.5,.12,.45,3.2,0xeceff1);bx(8.75,0,8.1,2.8,.45,.12,0xeceff1);bx(8.75,0,4.9,2.8,.12,.1,0xeceff1);
-const wat=new T.Mesh(new T.BoxGeometry(2.7,.04,3.1),new T.MeshStandardMaterial({color:0x29b6f6,transparent:true,opacity:.6,roughness:.15}));wat.position.set(8.75,.33,6.5);S.add(wat);
+const wat=new T.Mesh(new T.BoxGeometry(2.7,.04,3.1),new T.MeshStandardMaterial({color:0x00e5ff,emissive:0x006f9a,emissiveIntensity:.8,transparent:true,opacity:.6,roughness:.15}));wat.position.set(8.75,.33,6.5);S.add(wat);
 /* ---------- Graf jalur (robot hanya lewat node ini) ---------- */
 const N={},E={};
 const nd=(id,x,y,z)=>{N[id]=[x,y,z];E[id]=E[id]||[]},ln=(a,b)=>{E[a].push(b);E[b].push(a)};
@@ -361,7 +371,7 @@ addEventListener('resize',resize);resize();
 function proj(el,x,y,z){V.set(x,y,z).project(cam);el.style.display=V.z<1?'':'none';el.style.transform='translate('+((V.x*.5+.5)*innerWidth)+'px,'+((-V.y*.5+.5)*innerHeight)+'px) translate(-50%,-100%)'}
 let last=performance.now(),time=0;
 function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;time+=dt;
- lv+=((lights?1:0)-lv)*Math.min(1,dt*3);hemi.intensity=.3+.8*lv;sun.intensity=.12+1.2*lv;pls.forEach(l=>l.intensity=1.1*lv);lampM.color.copy(cOff).lerp(cOn,lv);S.background.copy(cD).lerp(cL,lv);
+ lv+=((lights?1:0)-lv)*Math.min(1,dt*3);hemi.intensity=.25+.7*lv;sun.intensity=.1+.7*lv;pls.forEach(l=>l.intensity=1.1*lv);lampM.color.copy(cOff).lerp(cOn,lv);S.background.copy(cD).lerp(cL,lv);
  bots.forEach(r=>{stepR(r,dt);animR(r,dt,time);const tx=r.name+(MO[r.mood]||'')+(r.p.type>.5?' ⌨':'');if(r.mt>0&&(r.mt-=dt)<=0)r.mood='tenang';if(r.tx!==tx){r.tx=tx;r.el.lastChild.textContent=tx}if(r.bt>0){r.bt-=dt;if(r.bt<=0)r.bub.style.display='none'}});stepR(boss,dt);animR(boss,dt,time);if(boss.bt>0){boss.bt-=dt;if(boss.bt<=0)boss.bub.style.display='none'}proj(boss.el,boss.g.position.x,boss.g.position.y+1.75-.15*boss.p.sit,boss.g.position.z);
  pcs.forEach(p=>{if(p.on)p.m.color.setHSL(.54,.8,.55+.07*Math.sin(time*3));else p.m.color.setHex(0x0b0e14)});
  th+=0;cam.position.set(tgt.x+rad*Math.sin(ph)*Math.sin(th),tgt.y+rad*Math.cos(ph),tgt.z+rad*Math.sin(ph)*Math.cos(th));cam.lookAt(tgt);

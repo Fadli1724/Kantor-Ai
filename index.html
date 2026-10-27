@@ -58,6 +58,9 @@ function bx(x,y,z,w,h,d,c,p){const m=new T.Mesh(new T.BoxGeometry(w,h,d),typeof 
 function cyl(x,y,z,r,h,c){const m=new T.Mesh(new T.CylinderGeometry(r,r,h,16),M(c));m.position.set(x,y+h/2,z);S.add(m);return m}
 const wl=(x1,x2,z1,z2,y,h,c)=>bx((x1+x2)/2,y,(z1+z2)/2,Math.max(x2-x1,.14),h,Math.max(z2-z1,.14),c||0xdfe3ea);
 const stool=(x,y,z)=>{cyl(x,y,z,.04,.38,0x222831);cyl(x,y+.38,z,.2,.06,0x37474f)};
+const pot=(x,y,z)=>{bx(x,y,z,.45,.3,.45,0x37474f);[[.38,.62,0,0x2e7d32],[.22,.88,.1,0x66bb6a]].forEach(a=>{const s=new T.Mesh(new T.SphereGeometry(a[0],10,8),M(a[3]));s.position.set(x+a[2],y+a[1],z);s.castShadow=true;S.add(s)})};
+const chair=(x,y,z)=>{cyl(x,y,z,.04,.4,0x222831);cyl(x,y,z,.26,.04,0x222831);bx(x,y+.4,z,.5,.08,.5,0x2b2f45);bx(x,y+.48,z+.26,.5,.5,.07,0x2b2f45);bx(x-.28,y+.45,z,.05,.05,.4,0x222831);bx(x+.28,y+.45,z,.05,.05,.4,0x222831)};
+const shelf=(x,y,z)=>{bx(x,y,z,.4,1.4,1.6,0x3e2c23);for(let r=0;r<3;r++)for(let k=0;k<7;k++)bx(x+.06,y+.1+r*.45,z-.7+k*.22,.28,.32,.16,[0xff2bd6,0x00e5ff,0xffe600,0x7a4bff,0x00ff9c][(r+k)%5])};
 
 /* ---------- Denah ---------- */
 bx(0,-.3,0,26,.3,22,0x0d0b24);
@@ -92,7 +95,7 @@ const sw=bx(10,3.7,-3,.1,.3,.18,0x2e7d32);
 /* PC & meja */
 const xs=[-7.5,-4.5,-1.5,1.5],pcs=[],F={};
 function desk(x,dz,cz,on){const scr=new T.MeshBasicMaterial({color:on?0x66e0ff:0x0b0e14});
- bx(x,3,dz,1.6,.75,.8,0x8d6e63);bx(x,3.75,dz-.1,.1,.2,.1,0x20242c);bx(x,3.95,dz-.18,.86,.56,.08,0x20242c);bx(x,3.99,dz-.13,.76,.46,.02,scr);bx(x,3.75,dz+.2,.5,.03,.18,0x39414f);stool(x,3,cz+.45);return {m:scr,on}}
+ bx(x,3,dz,1.6,.75,.8,0x8d6e63);bx(x,3.75,dz-.1,.1,.2,.1,0x20242c);bx(x,3.95,dz-.18,.86,.56,.08,0x20242c);bx(x,3.99,dz-.13,.76,.46,.02,scr);bx(x,3.75,dz+.2,.5,.03,.18,0x39414f);bx(x+.45,3.75,dz+.22,.07,.03,.11,0x20242c);cyl(x-.62,3.75,dz+.1,.05,.1,0xff2bd6);bx(x+.62,3.75,dz+.05,.3,.015,.4,0xffffff);bx(x-.65,3.75,dz-.25,.04,.38,.04,0xb0bec5);bx(x-.65,4.1,dz-.2,.2,.04,.05,nm(0xfff3c4));bx(x+.75,3,dz,.22,.45,.4,0x1c1c28);chair(x,3,cz+.45);return {m:scr,on}}
 for(let i=0;i<8;i++){const x=xs[i%4],r2=i>3;pcs.push(desk(x,r2?-4:-7.2,r2?-3:-6.2,false));F['P'+i]=PI}
 desk(6.5,-7.2,-6.2,true);
 /* asrama */
@@ -101,6 +104,22 @@ const BX=[];for(let i=0;i<8;i++){const x=-8.5+i*2.43;BX.push(x);bx(x,0,-6.3,1.1,
 /* kolam renang */
 bx(8.75,0,6.5,2.8,.05,3.2,0x4fc3f7);bx(7.3,0,6.5,.12,.45,3.2,0xeceff1);bx(10.2,0,6.5,.12,.45,3.2,0xeceff1);bx(8.75,0,8.1,2.8,.45,.12,0xeceff1);bx(8.75,0,4.9,2.8,.12,.1,0xeceff1);
 const wat=new T.Mesh(new T.BoxGeometry(2.7,.04,3.1),new T.MeshStandardMaterial({color:0x00e5ff,emissive:0x006f9a,emissiveIntensity:.8,transparent:true,opacity:.6,roughness:.15}));wat.position.set(8.75,.33,6.5);S.add(wat);
+/* perabot realistis */
+const LEDS=[];
+shelf(-9.65,3,-5);shelf(-9.65,0,5);pot(-9.4,3,-3.2);pot(4.6,3,-3.2);pot(-9.4,0,4.4);pot(-6.2,0,.7);pot(3.2,0,.7);pot(6.9,0,.7);
+bx(9.2,3,-7.2,1,2,.7,0x1c1c28);for(let i=0;i<10;i++){const lm=new T.MeshBasicMaterial({color:0x00ff9c});LEDS.push(lm);bx(8.9+(i%2)*.3,3.25+Math.floor(i/2)*.32,-6.84,.12,.06,.02,lm)}
+bx(8.5,3,-5.3,.9,.7,.6,0x37474f);bx(8.5,3.7,-5.3,.6,.25,.45,0xeceff1);bx(8.5,3.95,-5.3,.4,.02,.3,0xffffff);
+bx(7.6,3,-4.6,.4,1.1,.4,0xeceff1);cyl(7.6,4.1,-4.6,.16,.35,0x4fc3f7);
+bx(-3,3.5,-7.93,3,1.1,.04,0xf5f5f5);for(let k=0;k<5;k++)bx(-4.1+k*.55,3.9,-7.9,.3,.3,.02,[0xffe600,0xff2bd6,0x00e5ff,0x00ff9c,0xff7043][k]);
+{const ck=cyl(2.5,0,0,.28,.04,0xffffff);ck.rotation.x=PI/2;ck.position.set(2.5,4.1,-7.92);bx(2.5,4.1,-7.88,.02,.2,.01,nm(0x000000))}
+bx(0,3.02,-1.5,14,.02,1.1,0x2a1a6e);
+cyl(-9.5,0,4.3,.03,1.3,0x222831);bx(-9.5,1.3,4.3,.25,.18,.25,nm(0xff2bd6));cyl(-5.8,0,5.2,.35,.35,0xff2bd6);
+bx(-4.5,0,6.3,.3,.5,.5,0x6d4c41);bx(-1.4,0,4.5,.3,.35,1,0x5d4037);
+bx(.6,.9,7.6,.6,.45,.45,0x212121);bx(.6,1.35,7.6,.6,.04,.45,0xb0bec5);[2.1,2.5,2.9].forEach(x=>cyl(x,.9,7.6,.06,.12,0xffffff));bx(2,.7,7.92,1.6,.55,.04,nm(0xffb000));stool(2.1,0,6.7);stool(2.9,0,6.7);bx(3.9,0,7.6,.7,1.3,.6,0xcfd8dc);bx(3.58,.6,7.3,.03,.5,.03,0x455a64);
+bx(6.7,.8,7.92,.5,.5,.04,0x9fd8ff);cyl(6.7,.8,7.6,.03,.2,0xb0bec5);cyl(4.9,0,4.3,.15,.35,0x455a64);
+BX.forEach(x=>{bx(x+.8,0,-7.3,.4,.45,.4,0x5d4037);bx(x+.8,.45,-7.3,.15,.2,.15,nm(0xffe600))});
+[5.4,7.2].forEach(z=>{bx(11.2,0,z,.7,.3,1.4,0xeceff1);bx(11.2,.3,z-.2,.5,.03,.5,0xff2bd6)});cyl(11.2,0,6.3,.03,2.2,0xb0bec5);{const um=new T.Mesh(new T.ConeGeometry(1.2,.4,16),M(0x00e5ff));um.position.set(11.2,2.4,6.3);um.castShadow=true;S.add(um)}
+[-10.5,10.9].forEach(x=>{cyl(x,0,1.8,.06,2.8,0x222831);bx(x,2.8,1.8,.4,.1,.4,nm(0x00f0ff))});
 /* ---------- Graf jalur (robot hanya lewat node ini) ---------- */
 const N={},E={};
 const nd=(id,x,y,z)=>{N[id]=[x,y,z];E[id]=E[id]||[]},ln=(a,b)=>{E[a].push(b);E[b].push(a)};
@@ -371,7 +390,7 @@ addEventListener('resize',resize);resize();
 function proj(el,x,y,z){V.set(x,y,z).project(cam);el.style.display=V.z<1?'':'none';el.style.transform='translate('+((V.x*.5+.5)*innerWidth)+'px,'+((-V.y*.5+.5)*innerHeight)+'px) translate(-50%,-100%)'}
 let last=performance.now(),time=0;
 function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;time+=dt;
- lv+=((lights?1:0)-lv)*Math.min(1,dt*3);hemi.intensity=.25+.7*lv;sun.intensity=.1+.7*lv;pls.forEach(l=>l.intensity=1.1*lv);lampM.color.copy(cOff).lerp(cOn,lv);S.background.copy(cD).lerp(cL,lv);
+ lv+=((lights?1:0)-lv)*Math.min(1,dt*3);hemi.intensity=.25+.7*lv;sun.intensity=.1+.7*lv;pls.forEach(l=>l.intensity=1.1*lv);lampM.color.copy(cOff).lerp(cOn,lv);LEDS.forEach((m,i)=>m.color.setHex(Math.sin(time*4+i*1.9)>0?0x00ff9c:0x0b3a24));S.background.copy(cD).lerp(cL,lv);
  bots.forEach(r=>{stepR(r,dt);animR(r,dt,time);const tx=r.name+(MO[r.mood]||'')+(r.p.type>.5?' ⌨':'');if(r.mt>0&&(r.mt-=dt)<=0)r.mood='tenang';if(r.tx!==tx){r.tx=tx;r.el.lastChild.textContent=tx}if(r.bt>0){r.bt-=dt;if(r.bt<=0)r.bub.style.display='none'}});stepR(boss,dt);animR(boss,dt,time);if(boss.bt>0){boss.bt-=dt;if(boss.bt<=0)boss.bub.style.display='none'}proj(boss.el,boss.g.position.x,boss.g.position.y+1.75-.15*boss.p.sit,boss.g.position.z);
  pcs.forEach(p=>{if(p.on)p.m.color.setHSL(.54,.8,.55+.07*Math.sin(time*3));else p.m.color.setHex(0x0b0e14)});
  th+=0;cam.position.set(tgt.x+rad*Math.sin(ph)*Math.sin(th),tgt.y+rad*Math.cos(ph),tgt.z+rad*Math.sin(ph)*Math.cos(th));cam.lookAt(tgt);

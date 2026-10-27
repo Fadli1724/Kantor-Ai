@@ -24,7 +24,7 @@ body{background:#1b2233;color:var(--ink);font:14px system-ui,sans-serif;overflow
 .room{opacity:.9}
 #kp{display:none;position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:12px;padding:12px;backdrop-filter:blur(6px)}
 #kp.show{display:block}
-#kp input{width:100%;box-sizing:border-box;margin:6px 0;padding:10px;border-radius:10px;border:1px solid var(--ln);background:transparent;color:var(--ink);font:16px system-ui}
+#kp input,#kp select{width:100%;box-sizing:border-box;margin:6px 0;padding:10px;border-radius:10px;border:1px solid var(--ln);background:transparent;color:var(--ink);font:16px system-ui}
 #kr{display:flex;gap:6px}
 #kr button{flex:1;padding:10px;border-radius:10px;border:1px solid var(--ln);background:var(--pn);color:var(--ink);font:inherit}
 #kr #ks{background:var(--ac);color:#fff;border:0}
@@ -228,9 +228,9 @@ const AG=['Nova','Pixel','Byte','Echo','Sage','Ledger','Radar'];
 const ROLES={Nova:'copywriter yang menulis naskah, caption, artikel, dan email',Pixel:'desainer yang menyusun konsep visual: layout, palet warna hex, font, dan isi tiap elemen',Byte:'developer yang menulis kode atau langkah teknis yang siap dipakai',Echo:'customer service yang menyiapkan balasan dan FAQ yang ramah',Sage:'periset yang merangkum temuan, poin penting, dan rekomendasi',Ledger:'staf keuangan yang menyusun anggaran, rincian biaya, dan laporan',Radar:'marketer yang menyusun rencana kampanye, jadwal publikasi, dan targeting'};
 const PLAN_PROMPT='Kamu Rook, Project Manager sebuah tim AI. Bos Fadli memberi perintah tingkat tinggi. Pecah menjadi 1-5 tugas kecil dan bagikan ke agen yang paling cocok, satu agen satu tugas. Agen: Nova (copywriter), Pixel (desainer), Byte (developer), Echo (customer service), Sage (riset), Ledger (keuangan), Radar (marketing). Balas HANYA JSON valid dengan format {"plan":[{"agent":"Nova","task":"nulis naskah webinar","seconds":12}]}. task maksimal 6 kata, bahasa Indonesia santai. seconds antara 6 dan 20.';
 async function groq(msgs,json,max,temp){
- const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+ST.get('gk'),'Content-Type':'application/json'},body:JSON.stringify({model:ST.get('gm')||'llama-3.3-70b-versatile',max_tokens:max,temperature:temp,...(json?{response_format:{type:'json_object'}}:{}),messages:msgs})});
+ const r=await fetch(ST.get('gp')=='xai'?'https://api.x.ai/v1/chat/completions':'https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+ST.get('gk'),'Content-Type':'application/json'},body:JSON.stringify({model:ST.get('gm')||(ST.get('gp')=='xai'?'grok-4.6':'llama-3.3-70b-versatile'),max_tokens:max,temperature:temp,...(json?{response_format:{type:'json_object'}}:{}),messages:msgs})});
  const d=await r.json().catch(()=>({}));
- if(!r.ok)throw new Error('Groq '+r.status+': '+((d.error&&d.error.message)||'error'));
+ if(!r.ok)throw new Error('API '+r.status+': '+((d.error&&d.error.message)||'error'));
  return d.choices[0].message.content}
 async function api(b){
  if(ST.get('gk')){
@@ -280,14 +280,14 @@ function rrender(){const l=$('rl');l.textContent='';if(!RES.length){l.textConten
 rb.onclick=()=>{rp.classList.add('show');rrender()};$('rx').onclick=()=>rp.classList.remove('show');
 const kb=document.createElement('button'),kp=document.createElement('div');
 kb.className='chip';$('chips').prepend(kb);
-kp.id='kp';kp.innerHTML='<b>Pengaturan AI (Groq)</b><div class="kt">Tempel API key Groq. Disimpan hanya di browser ini dan hanya dikirim ke Groq.</div><input id="ki" type="password" placeholder="API key (gsk_...)" autocomplete="off"><input id="km" placeholder="Model (kosongkan untuk bawaan)" autocomplete="off"><div id="kr"><button id="ks">Simpan &amp; tes</button><button id="kd">Hapus key</button><button id="kc">Tutup</button></div><div id="kz"></div>';document.body.appendChild(kp);
+kp.id='kp';kp.innerHTML='<b>Pengaturan AI</b><div class="kt">Pilih penyedia lalu tempel API key. Disimpan hanya di browser ini dan hanya dikirim ke penyedia yang kamu pilih.</div><select id="kv"><option value="groq">Groq (key gsk_...)</option><option value="xai">xAI Grok (key xai-...)</option></select><input id="ki" type="password" placeholder="API key" autocomplete="off"><input id="km" placeholder="Model (kosongkan untuk bawaan)" autocomplete="off"><div id="kr"><button id="ks">Simpan &amp; tes</button><button id="kd">Hapus key</button><button id="kc">Tutup</button></div><div id="kz"></div>';document.body.appendChild(kp);
 function kbl(){kb.textContent=ST.get('gk')?'🔑 AI aktif':'🔑 API Key'}kbl();
-kb.onclick=()=>{$('ki').value='';$('km').value=ST.get('gm');$('kz').textContent=ST.get('gk')?'Key tersimpan. Isi kolom key untuk menggantinya.':'';kp.classList.add('show')};
+kb.onclick=()=>{$('kv').value=ST.get('gp')||'groq';$('ki').value='';$('km').value=ST.get('gm');$('kz').textContent=ST.get('gk')?'Key tersimpan. Isi kolom key untuk menggantinya.':'';kp.classList.add('show')};
 $('kc').onclick=()=>kp.classList.remove('show');
 $('kd').onclick=()=>{ST.set('gk','');kbl();$('kz').textContent='Key dihapus.'};
-$('ks').onclick=async()=>{const v=$('ki').value.trim(),z=$('kz');if(v)ST.set('gk',v);ST.set('gm',$('km').value.trim());kbl();
+$('ks').onclick=async()=>{const v=$('ki').value.trim(),z=$('kz');if(v)ST.set('gk',v);ST.set('gp',$('kv').value);ST.set('gm',$('km').value.trim());kbl();
  if(!ST.get('gk')){z.textContent='Isi API key dulu.';return}
- z.textContent='Menguji koneksi...';try{await groq([{role:'user',content:'Balas satu kata: siap'}],false,10,0);z.textContent='✅ Terhubung ke Groq. Kamu bisa kirim perintah sekarang.';log('Sistem','AI Groq terhubung.')}catch(e){z.textContent='❌ '+e.message}};
+ z.textContent='Menguji koneksi...';try{await groq([{role:'user',content:'Balas satu kata: siap'}],false,10,0);z.textContent='✅ Terhubung. Kamu bisa kirim perintah sekarang.';log('Sistem','AI terhubung.')}catch(e){z.textContent='❌ '+e.message}};
 if(!HAS())log('Sistem','Tekan tombol 🔑 API Key untuk menghubungkan AI Groq.');$('in').onkeydown=e=>{if(e.key=='Enter')$('go').onclick()};
 log('Sistem','Kantor dibuka. Tim: '+DEF.map(d=>d[0]+' ('+d[1]+')').join(', ')+'.');
 

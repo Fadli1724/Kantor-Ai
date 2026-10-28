@@ -301,7 +301,7 @@ async function groq(msgs,json,max,temp){
  return d.choices[0].message.content}
 async function api(b){
  if(ST.get('gk')){
-  if(b.mode=='work'){const o=await groq([{role:'system',content:`Kamu ${b.agent}, ${ROLES[b.agent]} di tim Bos Fadli. Kerjakan tugasmu dan berikan HASIL JADI yang bisa langsung dipakai, dalam bahasa Indonesia, maksimal sekitar 250 kata, tanpa basa-basi pembuka.${FMT[b.agent]||''}`},{role:'user',content:`Perintah Bos: ${b.text}\nTugasmu: ${b.task}`}],false,FMT[b.agent]?1800:700,.7);return{result:o.trim()}}
+  if(b.mode=='work'){const o=await groq([{role:'system',content:`Kamu ${b.agent}, ${ROLES[b.agent]} di tim Bos Fadli. Kerjakan tugasmu dan berikan HASIL JADI yang bisa langsung dipakai, dalam bahasa Indonesia, maksimal sekitar 250 kata, tanpa basa-basi pembuka.${FMT[b.agent]||''}`},{role:'user',content:`Perintah Bos: ${b.text}\nTugasmu: ${b.task}${b.prev?'\n\nHasil kerjamu sebelumnya (revisi atau lanjutkan ini sesuai perintah Bos):\n'+b.prev:''}`}],false,FMT[b.agent]?1800:700,.7);return{result:o.trim()}}
   const raw=await groq([{role:'system',content:PLAN_PROMPT},{role:'user',content:b.text}],true,600,.4);
   const plan=JSON.parse(raw.replace(/```json|```/g,'').trim()).plan.filter(p=>AG.includes(p.agent)&&typeof p.task=='string').slice(0,5);
   if(!plan.length)throw new Error('rencana kosong');return{plan}}
@@ -315,7 +315,7 @@ async function task(s,nm){
  const ws=items.map(it=>bots.find(b=>b.name==it.n)),R0=bots[0];let left=ws.length;
  tgt.set(0,3,-3.5);rad=Math.min(rad,innerWidth<innerHeight?34:22);ph=.9;
  items.forEach(it=>{it.res={agent:it.n,task:it.t,status:'work',text:''};RES.unshift(it.res);it.done=false;
-  if(HAS())api({mode:'work',agent:it.n,task:it.t,text:s}).then(j=>{it.res.text=j.result||j.error||'(kosong)'}).catch(e=>{it.res.text='Gagal: '+e.message;setMood(bots.find(b=>b.name==it.n),'kecewa')}).finally(()=>{it.done=true});
+  if(HAS())api({mode:'work',agent:it.n,task:it.t,text:s,prev:REV.test(s.toLowerCase())&&mem(it.n).work.length?mem(it.n).work[mem(it.n).work.length-1].res:''}).then(j=>{it.res.text=j.result||j.error||'(kosong)';if(j.result){const w=mem(it.n).work;w.push({t:it.t,cmd:s,res:j.result.slice(0,1500)});if(w.length>4)w.shift();saveMem()}}).catch(e=>{it.res.text='Gagal: '+e.message;setMood(bots.find(b=>b.name==it.n),'kecewa')}).finally(()=>{it.done=true});
   else{it.res.text='Mode lokal: tempel API key lewat tombol 🔑 untuk hasil AI asli.';it.done=true}});
  rbadge();
  if(!nm)rook('Oke Bos Fadli. Aku pecah jadi '+ws.length+' tugas: '+items.map(it=>it.n+' '+it.t).join(', ')+'.');
@@ -324,16 +324,22 @@ async function task(s,nm){
   Q(w,[{k:'wait',d:3.5+j*.6},{k:'say',x:'Siap Rook, aku mulai: '+it.t+'.'},...A.pc(w,d,[{k:'until',f:()=>it.done},{k:'say',x:'Beres: '+it.t+' ✅ Cek tombol Hasil.'},{k:'fn',fn:()=>{it.res.status='done';rbadge()}}]),
    {k:'fn',fn:()=>{w.busy=0;setMood(w,'senang');if(--left==0)rook('Bos Fadli, semua tugas sudah selesai ✅')}}])})}
 let TG=null;
+let MEM={};try{MEM=JSON.parse(ST.get('mem')||'{}')}catch(e){MEM={}}
+const saveMem=()=>ST.set('mem',JSON.stringify(MEM));
+const mem=n=>MEM[n]||(MEM[n]={chat:[],work:[]});
+const REV=/revisi|perbaiki|ubah|lanjut|tambahkan|edit|ganti|sempurnakan|perpendek|perpanjang|tadi|sebelumnya|versi/;
+const ctx=n=>{const w=mem(n).work.slice(-3).map(x=>'- '+x.t+': '+x.res.slice(0,300)).join('\n');return w?'\nPekerjaan terakhirmu (ingat ini):\n'+w:''};
+const hist=n=>mem(n).chat.slice(-6).flatMap(x=>[{role:'user',content:x.u},{role:'assistant',content:x.a}]);
 const MO={senang:'😊',sedih:'😢',kesal:'😠',kecewa:'😞',semangat:'🤩',capek:'😴',tenang:''};
 const PERS={Rook:'tegas tapi perhatian, kadang cemas',Nova:'ceria, puitis, gampang baper',Pixel:'perfeksionis, gampang kecewa',Byte:'cuek, sarkas, gampang emosi',Echo:'ramah, empatik, gampang sedih',Sage:'tenang, bijak, suka menasihati',Ledger:'teliti, pelit, gampang panik soal biaya',Radar:'energik, heboh, suka bercanda'};
 const LOC={senang:['Wah makasih Bos, jadi semangat!','Hehe, seneng banget dengernya.'],sedih:['Hiks... iya Bos, aku usahain lebih baik.','Jujur aku agak sedih dengernya, Bos.'],kesal:['Hah? Serius Bos? Aku udah usaha keras lho!','Duh, kok gitu sih, bikin emosi aja.'],kecewa:['Oh... gitu ya Bos. Aku kecewa sih.','Yah, padahal udah kukerjain sepenuh hati.'],semangat:['Siap Bos! Gas!','Ayo ayo, aku siap!'],capek:['Haaah... capek Bos, boleh istirahat dulu?'],tenang:['Siap Bos, ada yang bisa kubantu?','Halo Bos, aku di sini.']};
 const setMood=(r,m)=>{if(r){r.mood=m;r.mt=45}};
 function guess(s){return /bagus|mantap|hebat|makasih|terima kasih|keren|sayang|rajin/.test(s)?'senang':/jelek|payah|lambat|salah|bodoh|malas|lelet|marah/.test(s)?(Math.random()<.5?'kesal':'kecewa'):/sedih|capek|lelah|kasihan/.test(s)?'sedih':/semangat|ayo|gas/.test(s)?'semangat':'tenang'}
 function chat(t,tg){const s=t.toLowerCase();tg.forEach(r=>{(async()=>{let out=null,m=null;
- if(ST.get('gk')){try{out=await groq([{role:'system',content:`Kamu ${r.name}, ${ROLES[r.name]}. Sifatmu: ${PERS[r.name]}. Suasana hatimu sekarang: ${r.mood}. Bos Fadli mengajakmu bicara. Jawab pertanyaan atau ajakan Bos sesuai topiknya dengan benar dan berguna (maksimal 4 kalimat), bahasa Indonesia santai, dengan gaya dan emosi sesuai sifatmu (boleh marah, sedih, kecewa, senang). Jangan mengelak dari topik. Akhiri dengan mood barumu persis satu dari [senang] [sedih] [kesal] [kecewa] [semangat] [capek] [tenang].`},{role:'user',content:t}],false,300,.9)}catch(e){out=null;log('Sistem','AI gagal menjawab: '+e.message)}}
+ if(ST.get('gk')){try{out=await groq([{role:'system',content:`Kamu ${r.name}, ${ROLES[r.name]}. Sifatmu: ${PERS[r.name]}. Suasana hatimu sekarang: ${r.mood}. Bos Fadli mengajakmu bicara. Jawab pertanyaan atau ajakan Bos sesuai topiknya dengan benar dan berguna (maksimal 4 kalimat), bahasa Indonesia santai, dengan gaya dan emosi sesuai sifatmu (boleh marah, sedih, kecewa, senang). Jangan mengelak dari topik. Akhiri dengan mood barumu persis satu dari [senang] [sedih] [kesal] [kecewa] [semangat] [capek] [tenang].${ctx(r.name)}`},...hist(r.name),{role:'user',content:t}],false,300,.9)}catch(e){out=null;log('Sistem','AI gagal menjawab: '+e.message)}}
  if(out){const mm=out.match(/\[(senang|sedih|kesal|kecewa|semangat|capek|tenang)\]\s*$/i);m=mm&&mm[1].toLowerCase();out=out.replace(/\[[^\]]*\]\s*$/,'').trim()}
  if(!out){m=guess(s);const L=LOC[m];out=L[Math.random()*L.length|0]+(ST.get('gk')?'':' (Tempel API key lewat tombol 🔑 supaya aku bisa jawab topik apa saja.)')}
- setMood(r,m||guess(s));r.say(out)})()})}
+ setMood(r,m||guess(s));r.say(out);{const c=mem(r.name).chat;c.push({u:t,a:out});if(c.length>8)c.shift();saveMem()}})()})}
 function save(n,txt){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
 function dl(x){let t=x.text,ext='md';const m=t.match(/```(\w*)\n([\s\S]*?)```/);if(m){t=m[2];ext={html:'html',svg:'svg',xml:'svg',js:'js',javascript:'js',python:'py',css:'css',json:'json'}[m[1].toLowerCase()]||'txt'}save(x.agent+'-'+x.task.replace(/[^\w]+/g,'_').slice(0,24)+'.'+ext,t)}
 function dlCmd(tg){const ok=RES.filter(x=>x.status=='done'&&x.text);if(!ok.length){rook('Belum ada hasil kerja untuk diunduh, Bos.');return}
@@ -348,14 +354,14 @@ function cmd(t){t=t.trim();if(!t)return;log('Bos Fadli',t);
  const tags=m[1].match(/@\w+/g).map(x=>x.slice(1).toLowerCase()),rest=m[2].trim()||'halo';
  let tg;if(tags.includes('semua'))tg=bots.slice();else{tg=tags.map(n=>bots.find(b=>b.name.toLowerCase()==n));if(tg.some(b=>!b)){rook('Robot itu tidak ada Bos. Yang ada: '+bots.map(b=>b.name).join(', '));return}}
  visit(tg,rest,tags.includes('semua'),()=>{TG=tg;cmd0(rest,tg)})}
-function cmd0(t,tg){t=t.trim();const s=t.toLowerCase();if(/\b(download|unduh)\b/.test(s)){dlCmd(TG);return}if(/\?\s*$|^(apa|siapa|kenapa|mengapa|bagaimana|gimana|kapan|dimana|di mana|berapa|apakah|jelaskan|ceritakan)\b/.test(s)){chat(t,TG);return}if(/renang|berenang|kolam/.test(s)){group('swim','Siap Bos, waktunya berenang!');return}if(/tidur|bobo/.test(s)){lightCmd(false);return}
+function cmd0(t,tg){t=t.trim();const s=t.toLowerCase();if(/\b(download|unduh)\b/.test(s)){dlCmd(TG);return}if(/\?\s*$|^(apa|siapa|kenapa|mengapa|bagaimana|gimana|kapan|dimana|di mana|berapa|apakah|jelaskan|ceritakan)\b/.test(s)){chat(t,TG);return}if(/lupakan|hapus memori|reset memori/.test(s)){TG.forEach(r=>{delete MEM[r.name];r.say('Oke Bos, aku lupakan semuanya.')});saveMem();return}if(/renang|berenang|kolam/.test(s)){group('swim','Siap Bos, waktunya berenang!');return}if(/tidur|bobo/.test(s)){lightCmd(false);return}
  if(/lampu/.test(s)&&/(matikan|mati|padam|matiin)/.test(s))lightCmd(false);
  else if(/lampu/.test(s)&&/(nyala|hidup)/.test(s))lightCmd(true);
  else if(s.length<30&&/istirahat|santai|rehat|break/.test(s))group('relax','Siap Bos, semua istirahat dulu.');
  else if(/sholat|salat|solat|ibadah/.test(s))group('pray','Siap Bos, waktunya ibadah. Gantian ya di musholla.');
  else if(s.length<24&&/kopi|ngopi/.test(s))group('coffee','Siap Bos, semua ngopi dulu.');
  else if(s.length<24&&/kerja|meja/.test(s)&&!Object.values(SK).some(r=>r.test(s)))group('work','Siap Bos, semua balik ke meja masing-masing.');
- else if(!/^(tolong\s+|coba\s+|bisa\s+)?(buat|bikin|tulis|susun|rancang|kerjakan|hitung|siapkan|desain|riset|analisa|analisis|rangkum|cari)/.test(s))chat(t,TG);else task(s,TG?TG.map(b=>b.name):null)}
+ else if(!/^(tolong\s+|coba\s+|bisa\s+)?(buat|bikin|tulis|susun|rancang|kerjakan|hitung|siapkan|desain|riset|analisa|analisis|rangkum|cari|revisi|perbaiki|ubah|lanjutkan|lanjut|tambahkan|edit|ganti|sempurnakan|perpendek|perpanjang)/.test(s))chat(t,TG);else task(s,TG?TG.map(b=>b.name):null)}
 
 /* ---------- Log & UI ---------- */
 const LL=[];
@@ -372,7 +378,7 @@ function rrender(){const l=$('rl');l.textContent='';if(!RES.length){l.textConten
 rb.onclick=()=>{rp.classList.add('show');rrender()};$('rx').onclick=()=>rp.classList.remove('show');
 const kb=document.createElement('button'),kp=document.createElement('div');
 kb.className='chip';$('chips').prepend(kb);
-kp.id='kp';kp.innerHTML='<b>Pengaturan AI</b><div class="kt">Pilih penyedia lalu tempel API key. Disimpan hanya di browser ini dan hanya dikirim ke penyedia yang kamu pilih.</div><select id="kv"><option value="groq">Groq (key gsk_...)</option><option value="xai">xAI Grok (key xai-...)</option></select><input id="ki" type="password" placeholder="API key" autocomplete="off"><input id="km" placeholder="Model (kosongkan untuk bawaan)" autocomplete="off"><div id="kr"><button id="ks">Simpan &amp; tes</button><button id="kd">Hapus key</button><button id="kc">Tutup</button></div><div id="kz"></div>';document.body.appendChild(kp);
+kp.id='kp';kp.innerHTML='<b>Pengaturan AI</b><div class="kt">Pilih penyedia lalu tempel API key. Disimpan hanya di browser ini dan hanya dikirim ke penyedia yang kamu pilih.</div><select id="kv"><option value="groq">Groq (key gsk_...)</option><option value="xai">xAI Grok (key xai-...)</option></select><input id="ki" type="password" placeholder="API key" autocomplete="off"><input id="km" placeholder="Model (kosongkan untuk bawaan)" autocomplete="off"><div id="kr"><button id="ks">Simpan &amp; tes</button><button id="kd">Hapus key</button><button id="kx">Hapus memori</button><button id="kc">Tutup</button></div><div id="kz"></div>';document.body.appendChild(kp);
 async function autoModel(){
  const r=await fetch(ST.get('gp')=='xai'?'https://api.x.ai/v1/models':'https://api.groq.com/openai/v1/models',{headers:{Authorization:'Bearer '+ST.get('gk')}});
  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error('API '+r.status+': gagal mengambil daftar model');
@@ -380,7 +386,7 @@ async function autoModel(){
  return ['llama-3.3-70b-versatile','llama-3.1-8b-instant','openai/gpt-oss-20b','openai/gpt-oss-120b','grok-4.6'].find(x=>ids.includes(x))||ids[0]}
 function kbl(){kb.textContent=ST.get('gk')?'🔑 AI aktif':'🔑 API Key'}kbl();
 kb.onclick=()=>{$('kv').value=ST.get('gp')||'groq';$('ki').value='';$('km').value=ST.get('gm');$('kz').textContent=ST.get('gk')?'Key tersimpan. Isi kolom key untuk menggantinya.':'';kp.classList.add('show')};
-$('kc').onclick=()=>kp.classList.remove('show');
+$('kc').onclick=()=>kp.classList.remove('show');$('kx').onclick=()=>{MEM={};saveMem();$('kz').textContent='Memori semua robot dihapus.'};
 $('kd').onclick=()=>{ST.set('gk','');kbl();$('kz').textContent='Key dihapus.'};
 $('ks').onclick=async()=>{const v=$('ki').value.trim(),z=$('kz');if(v)ST.set('gk',v);ST.set('gp',$('kv').value);ST.set('gm',$('km').value.trim());kbl();
  if(!ST.get('gk')){z.textContent='Isi API key dulu.';return}

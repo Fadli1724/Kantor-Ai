@@ -32,7 +32,7 @@ body{background:#1b2233;color:var(--ink);font:14px system-ui,sans-serif;overflow
 #kz{margin-top:8px;font-size:13px;white-space:pre-wrap}
 #rp{display:none;position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + 110px);background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:12px;padding:10px;overflow:auto;backdrop-filter:blur(6px)}
 #rp.show{display:block}
-#rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+#rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;position:sticky;top:-10px;z-index:3;background:var(--pn);padding:8px 0}
 #rx{border:0;background:var(--ln);color:var(--ink);border-radius:8px;padding:4px 10px;font:inherit}
 .rc{border-top:1px solid var(--ln);padding:8px 0;white-space:pre-wrap;line-height:1.45}
 #go{background:linear-gradient(90deg,#ff2bd6,#7a4bff)!important;box-shadow:0 0 12px #ff2bd699}
@@ -190,12 +190,12 @@ const DEF=[['Rook','PM Koordinator',0xf59f00],['Nova','Copywriter',0xf06595],['P
 const TXT={Rook:'memecah tugas',Nova:'nulis konten',Pixel:'bikin desain',Byte:'ngoding',Echo:'nyiapin balasan pelanggan',Sage:'riset data',Ledger:'ngitung anggaran',Radar:'nyusun kampanye'};
 const bots=DEF.map((d,i)=>{const r=mkBot(d[2],0,i);r.name=d[0];r.role=d[1];r.mood='tenang';r.mt=0;r.node='P'+i;r.pos.set(...N['P'+i]);r.g.rotation.y=PI;
  r.el=mkL('','<div class="bub"></div><span class="tag">'+d[0]+'</span>');r.bub=r.el.firstChild;r.bt=0;
- r.say=function(t,d){this.bub.textContent=t;this.bub.style.display='block';this.bt=d||2.5+t.length*.05;log(this.name,t)};return r});
-const boss=mkBot(0,1,9);boss.pos.set(6.5,3,-6.2);boss.g.rotation.y=PI;boss.tg.sit=boss.tg.type=1;boss.p.sit=boss.p.type=1;boss.node='PB';boss.busy=1;boss.sat=1;boss.name='Bos Fadli';boss.el=mkL('','<div class="bub"></div><span class="tag">👔 Bos Fadli</span>');boss.bub=boss.el.firstChild;boss.bt=0;boss.say=function(t,d){this.bub.textContent=t;this.bub.style.display='block';this.bt=d||2.5+t.length*.05};
+ r.say=function(t,d){this.bub.textContent=t;this.bub.style.display='block';this.bt=d||2.5+t.length*.05;log(this.name,t);speak(this.name,t)};return r});
+const boss=mkBot(0,1,9);boss.pos.set(6.5,3,-6.2);boss.g.rotation.y=PI;boss.tg.sit=boss.tg.type=1;boss.p.sit=boss.p.type=1;boss.node='PB';boss.busy=1;boss.sat=1;boss.name='Bos Fadli';boss.el=mkL('','<div class="bub"></div><span class="tag">👔 Bos Fadli</span>');boss.bub=boss.el.firstChild;boss.bt=0;boss.say=function(t,d){this.bub.textContent=t;this.bub.style.display='block';this.bt=d||2.5+t.length*.05;speak('Bos Fadli',t)};
 
 
 function animR(r,dt,t){const p=r.p,tg=r.tg,k=Math.min(1,dt*7);for(const a in tg)p[a]+=(tg[a]-p[a])*k;
- r.ph+=dt*9*p.walk;const w=Math.sin(r.ph)*p.walk,sit=p.sit,kn=p.kneel,b=w*.7*(1-sit)*(1-kn)*(1-p.swim)+Math.sin(t*10)*.3*p.swim;
+ r.ph+=dt*15*p.walk;const w=Math.sin(r.ph)*p.walk,sit=p.sit,kn=p.kneel,b=w*.7*(1-sit)*(1-kn)*(1-p.swim)+Math.sin(t*10)*.3*p.swim;
  r.L.rotation.x=b-1.5*sit+1.4*kn;r.Rr.rotation.x=-b-1.5*sit+1.4*kn;
  const ty=p.type,sw=w*.8,tp=.1*Math.sin(t*20);
  let l=-sw*(1-ty)+ty*(-1.15+tp),rr=sw*(1-ty)+ty*(-1.15-tp);
@@ -203,7 +203,7 @@ function animR(r,dt,t){const p=r.p,tg=r.tg,k=Math.min(1,dt*7);for(const a in tg)
  l=l*(1-p.pray)-2.6*p.pray;rr=rr*(1-p.pray)-2.6*p.pray;
  l=l*(1-p.carry)-1.15*p.carry;rr=rr*(1-p.carry)-1.15*p.carry;r.pk.visible=p.carry>.3;const sw2=p.swim;l=l*(1-sw2)+(Math.sin(t*5)*1.6-.3)*sw2;rr=rr*(1-sw2)+(Math.sin(t*5+PI)*1.6-.3)*sw2;r.aL.rotation.x=l;r.aR.rotation.x=rr;r.up.rotation.x=p.pray*1.25;r.fl.visible=sw2>.3;
  r.up.position.y=.55+Math.abs(Math.sin(r.ph))*.035*p.walk;r.hd.rotation.y=.25*Math.sin(t*.8+r.i)*(1-p.walk)+(r.mood=='kesal'?.1*Math.sin(t*35):0);r.hd.rotation.x=(r.mood=='sedih'||r.mood=='kecewa'?.45:r.mood=='capek'?.3:0)*(1-p.type*.5);
- r.g.rotation.y+=wrap(r.yaw-r.g.rotation.y)*Math.min(1,dt*9);
+ r.g.rotation.y+=wrap(r.yaw-r.g.rotation.y)*Math.min(1,dt*14);
  const y=r.g.rotation.y,o=.45*sit+.7*sw2+.8*p.lie;r.g.rotation.x=-PI/2*p.lie+PI/2*sw2;r.g.position.set(r.pos.x-Math.sin(y)*o,r.pos.y-.15*sit-.42*kn+.72*p.lie+.33*sw2,r.pos.z-Math.cos(y)*o)}
 
 /* ---------- Gerak & langkah tugas ---------- */
@@ -211,7 +211,7 @@ const occ={};
 function move(r,dt){const to=N[r.path[0]],p=r.pos,dx=to[0]-p.x,dy=to[1]-p.y,dz=to[2]-p.z,flat=Math.hypot(dx,dz),dist=Math.hypot(dx,dy,dz);
  if(flat>.02)r.yaw=Math.atan2(dx,dz);r.tg.walk=1;
  if(flat>.05&&Math.abs(wrap(r.yaw-r.g.rotation.y))>.6){r.tg.walk=.3;return}
- const sp=(Math.abs(dy)>.05?1.1:1.7)*(r.tg.swim?.5:1)*dt;
+ const sp=(Math.abs(dy)>.05?2:3.2)*(r.tg.swim?.5:1)*dt;
  if(dist<=sp){p.set(to[0],to[1],to[2]);r.node=r.path.shift()}else p.set(p.x+dx/dist*sp,p.y+dy/dist*sp,p.z+dz/dist*sp)}
 function stepR(r,dt){if(r.hold){r.tg.walk=0;return}
  if(!r.cur){r.cur=r.q.shift()||null;
@@ -332,6 +332,15 @@ const REV=/revisi|perbaiki|ubah|lanjut|tambahkan|edit|ganti|sempurnakan|perpende
 const ctx=n=>{const w=mem(n).work.slice(-3).map(x=>'- '+x.t+': '+x.res.slice(0,300)).join('\n');return w?'\nPekerjaan terakhirmu (ingat ini):\n'+w:''};
 const hist=n=>mem(n).chat.slice(-6).flatMap(x=>[{role:'user',content:x.u},{role:'assistant',content:x.a}]);
 /* ===== PIPELINE 8 ROBOT ===== */
+/* ===== SUARA ROBOT ===== */
+const VP={Rook:[1,1],Nova:[1.35,1.05],Pixel:[1.2,1.1],Byte:[.8,1],Echo:[1.45,.95],Sage:[.7,.9],Ledger:[.9,1],Radar:[1.1,1.2],'Bos Fadli':[.5,.95]};
+let PEND=0;
+function speak(n,t){if(ST.get('snd')=='off'||!window.speechSynthesis||PEND>4)return;
+ const x=String(t).replace(/[^\p{L}\p{N}\s.,!?:;()-]/gu,'').trim().slice(0,240);if(!x)return;
+ const u=new SpeechSynthesisUtterance(x),p=VP[n]||[1,1],b=bots.find(q=>q.name==n),m=b?b.mood:'';
+ u.lang='id-ID';const vs=speechSynthesis.getVoices().filter(v=>/^id/i.test(v.lang));if(vs.length)u.voice=vs[0];
+ u.pitch=Math.max(.1,Math.min(2,p[0]*(m=='sedih'?.85:1)));u.rate=Math.max(.6,Math.min(1.6,p[1]*(m=='kesal'?1.15:m=='sedih'?.9:1)));
+ PEND++;u.onend=u.onerror=()=>{PEND=Math.max(0,PEND-1)};speechSynthesis.speak(u)}
 let PL=null;
 const PROLE=['Planner AI','Developer AI','Tester AI','Bug Hunter AI','Fixer AI','QA Reviewer AI','Final Validator AI','Release Agent'];
 PROLE.forEach((p,i)=>DEF[i][1]=p);
@@ -345,8 +354,8 @@ const code=t=>{const m=t.match(/```html\n([\s\S]*?)```/)||t.match(/```\w*\n([\s\
 const cut=(t,n)=>String(t||'').slice(0,n);
 const ai=(i,task,user,max)=>groqR([{role:'system',content:'Kamu '+bots[i].name+', '+PROLE[i]+' dalam tim pembuat aplikasi milik Bos Fadli. Bahasa Indonesia. '+task},{role:'user',content:user}],false,max,.5);
 function runTest(html){return new Promise(res=>{const id='t'+Date.now();
- const h='<script>const E=[];onerror=(m,s,l)=>{E.push(m+" (baris "+l+")")};addEventListener("unhandledrejection",e=>E.push("Promise: "+e.reason));addEventListener("load",()=>{setTimeout(()=>{try{[...document.querySelectorAll("button,[onclick]")].slice(0,15).forEach(x=>{try{x.click()}catch(e){E.push("klik: "+e.message)}});["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," ","Enter","w","a","s","d"].forEach(k=>{dispatchEvent(new KeyboardEvent("keydown",{key:k}));document.dispatchEvent(new KeyboardEvent("keydown",{key:k}))})}catch(e){E.push(e.message)}setTimeout(()=>parent.postMessage({tid:"'+id+'",errors:E.slice(0,8),tombol:document.querySelectorAll("button,[onclick]").length,kanvas:document.querySelectorAll("canvas").length,panjangTeks:document.body?document.body.innerText.length:0,judul:document.title},"*"),600)},400)});<\/script>';
- const f=document.createElement('iframe');f.sandbox='allow-scripts';f.style.cssText='position:fixed;left:-9999px;width:800px;height:600px';
+ const h='<script>const E=[];onerror=(m,s,l)=>{E.push(m+" (baris "+l+")")};addEventListener("unhandledrejection",e=>E.push("Promise: "+e.reason));addEventListener("load",()=>{setTimeout(()=>{try{[...document.querySelectorAll("button,[onclick]")].slice(0,15).forEach(x=>{try{x.click()}catch(e){E.push("klik: "+e.message)}});["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," ","Enter","w","a","s","d"].forEach(k=>{dispatchEvent(new KeyboardEvent("keydown",{key:k}));document.dispatchEvent(new KeyboardEvent("keydown",{key:k}))})}catch(e){E.push(e.message)}try{[`touchstart`,`touchend`].forEach(t=>{document.querySelectorAll(`canvas,body`).forEach(x=>x.dispatchEvent(new Event(t,{bubbles:true})))})}catch(e){}setTimeout(()=>parent.postMessage({tid:"'+id+'",errors:E.slice(0,8),tombol:document.querySelectorAll("button,[onclick]").length,kanvas:document.querySelectorAll("canvas").length,panjangTeks:document.body?document.body.innerText.length:0,judul:document.title,viewport:!!document.querySelector(`meta[name=viewport]`)},"*"),600)},400)});<\/script>';
+ const f=document.createElement('iframe');f.sandbox='allow-scripts';f.style.cssText='position:fixed;left:-9999px;width:390px;height:780px';
  const done=r=>{removeEventListener('message',on);f.remove();res(r)};
  const on=e=>{if(e.data&&e.data.tid==id)done(e.data)};addEventListener('message',on);
  setTimeout(()=>done({errors:['Timeout: halaman tidak merespons dalam 6 detik'],tombol:0,kanvas:0,panjangTeks:0}),6000);
@@ -359,12 +368,12 @@ function zip(files){const enc=new TextEncoder(),ch=[],cd=[];let off=0;const T0=[
  const cs=cd.reduce((a,b)=>a+b.length,0),en=new DataView(new ArrayBuffer(22));en.setUint32(0,0x06054b50,true);en.setUint16(8,files.length,true);en.setUint16(10,files.length,true);en.setUint32(12,cs,true);en.setUint32(16,off,true);
  return new Blob([...ch,...cd,new Uint8Array(en.buffer)],{type:'application/zip'})}
 const STG=[
- async()=>{const o=await ai(0,'Analisis perintah Bos dan susun spesifikasi proyek web satu file (HTML+CSS+JS tanpa library eksternal): tujuan, fitur utama, desain dan tampilan, teknologi, arsitektur kode, tahapan pengerjaan. Maksimal 350 kata.','Perintah Bos: '+PL.cmd,900);PL.o[0]=o;return o},
- async()=>{const o=await ai(1,'Tulis kode lengkap sesuai spesifikasi: satu file index.html dengan CSS dan JS di dalamnya, tanpa library eksternal, maksimal sekitar 250 baris, harus langsung berjalan. Tampilkan dalam satu blok kode html. Setelah blok kode tulis struktur proyek singkat (2-5 baris).','Spesifikasi:\n'+cut(PL.o[0],2500),3000);let o2=o;if(code(o).trim().length<200){o2=await ai(1,'Tulis HANYA satu blok kode html berisi file index.html lengkap (maksimal 200 baris, CSS dan JS di dalamnya) tanpa penjelasan apa pun.','Spesifikasi:\n'+cut(PL.o[0],1500),4500)}PL.code=code(o2);if(PL.code.trim().length<200)throw new Error('Nova gagal menghasilkan kode. Coba ganti model di pengaturan 🔑, misalnya llama-3.1-8b-instant.');PL.o[1]=o2;return o2},
- async()=>{const t=await runTest(PL.code);PL.t1=t;const o=await ai(2,'Kamu menguji aplikasi. Dari hasil uji otomatis (error JS, jumlah tombol, kanvas, panjang teks) dan spesifikasi, tulis Laporan Pengujian Fungsional: fitur yang bekerja, yang tidak, dan error yang ditemukan. Maksimal 200 kata.','Spesifikasi:\n'+cut(PL.o[0],1200)+'\n\nHasil uji otomatis:\n'+JSON.stringify(t),700);const r=o+'\n\nData uji: '+JSON.stringify(t);PL.o[2]=r;return r},
- async()=>{const o=await ai(3,'Analisis kode, hasil pengujian, error, masalah keamanan, dan potensi bug. Buat daftar bug berurutan prioritas (kritis/sedang/rendah) dengan lokasi dan saran perbaikan. Maksimal 250 kata.','Kode:\n'+cut(PL.code,4500)+'\n\nLaporan uji:\n'+cut(PL.o[2],1200),900);PL.o[3]=o;return o},
- async()=>{const o=await ai(4,'Perbaiki semua masalah dari laporan Bug Hunter dan hasil pengujian. Keluarkan SELURUH file index.html yang sudah diperbaiki dalam satu blok kode html, lalu daftar singkat perbaikan.','Kode:\n'+cut(PL.code,4500)+'\n\nLaporan bug:\n'+cut(PL.o[3],1500)+'\n\nLaporan uji:\n'+cut(PL.o[2],800),3000);const nc=code(o);if(nc.trim().length>200)PL.code=nc;PL.o[4]=o;return o},
- async()=>{const o=await ai(5,'Periksa kesesuaian aplikasi dengan spesifikasi, kualitas kode, pengalaman pengguna, dan stabilitas. Beri skor 0-10 untuk tiap aspek dan rekomendasi. Maksimal 200 kata.','Spesifikasi:\n'+cut(PL.o[0],1200)+'\n\nKode akhir:\n'+cut(PL.code,4000),700);PL.o[5]=o;return o},
+ async()=>{const o=await ai(0,'Analisis perintah Bos dan susun spesifikasi proyek web satu file (HTML+CSS+JS tanpa library eksternal): tujuan, fitur utama, desain dan tampilan, teknologi, arsitektur kode, tahapan pengerjaan. Target pengguna: HP Android layar sentuh (portrait): kontrol WAJIB sentuh (tombol di layar, swipe, atau tap), tampilan responsif penuh layar, tanpa keyboard atau mouse. Maksimal 350 kata.','Perintah Bos: '+PL.cmd,900);PL.o[0]=o;return o},
+ async()=>{const o=await ai(1,'Tulis kode lengkap sesuai spesifikasi: satu file index.html dengan CSS dan JS di dalamnya, tanpa library eksternal, maksimal sekitar 250 baris, harus langsung berjalan. Untuk HP Android: wajib ada meta viewport (width=device-width, initial-scale=1, user-scalable=no), tampilan portrait penuh layar, kontrol sentuh (tombol layar besar minimal 48px, swipe, atau tap) memakai touch events, touch-action:none agar tidak scroll atau zoom tak sengaja, dan jangan bergantung pada keyboard. Tampilkan dalam satu blok kode html. Setelah blok kode tulis struktur proyek singkat (2-5 baris).','Spesifikasi:\n'+cut(PL.o[0],2500),3000);let o2=o;if(code(o).trim().length<200){o2=await ai(1,'Tulis HANYA satu blok kode html berisi file index.html lengkap (maksimal 200 baris, CSS dan JS di dalamnya) tanpa penjelasan apa pun. Wajib untuk HP Android: meta viewport, layar portrait penuh, kontrol sentuh dengan tombol layar besar.','Spesifikasi:\n'+cut(PL.o[0],1500),4500)}PL.code=code(o2);if(PL.code.trim().length<200)throw new Error('Nova gagal menghasilkan kode. Coba ganti model di pengaturan 🔑, misalnya llama-3.1-8b-instant.');PL.o[1]=o2;return o2},
+ async()=>{const t=await runTest(PL.code);PL.t1=t;const o=await ai(2,'Kamu menguji aplikasi. Dari hasil uji otomatis (error JS, jumlah tombol, kanvas, panjang teks, ada tidaknya viewport meta untuk HP) dan spesifikasi, tulis Laporan Pengujian Fungsional: fitur yang bekerja, yang tidak, dan error yang ditemukan. Maksimal 200 kata.','Spesifikasi:\n'+cut(PL.o[0],1200)+'\n\nHasil uji otomatis:\n'+JSON.stringify(t),700);const r=o+'\n\nData uji: '+JSON.stringify(t);PL.o[2]=r;return r},
+ async()=>{const o=await ai(3,'Analisis kode, hasil pengujian, error, masalah keamanan, dan potensi bug, termasuk kontrol sentuh dan tampilan di HP. Buat daftar bug berurutan prioritas (kritis/sedang/rendah) dengan lokasi dan saran perbaikan. Maksimal 250 kata.','Kode:\n'+cut(PL.code,4500)+'\n\nLaporan uji:\n'+cut(PL.o[2],1200),900);PL.o[3]=o;return o},
+ async()=>{const o=await ai(4,'Perbaiki semua masalah dari laporan Bug Hunter dan hasil pengujian, pastikan kontrol sentuh untuk HP Android tetap berfungsi. Keluarkan SELURUH file index.html yang sudah diperbaiki dalam satu blok kode html, lalu daftar singkat perbaikan.','Kode:\n'+cut(PL.code,4500)+'\n\nLaporan bug:\n'+cut(PL.o[3],1500)+'\n\nLaporan uji:\n'+cut(PL.o[2],800),3000);const nc=code(o);if(nc.trim().length>200)PL.code=nc;PL.o[4]=o;return o},
+ async()=>{const o=await ai(5,'Periksa kesesuaian aplikasi dengan spesifikasi, kualitas kode, pengalaman pengguna di HP Android (kontrol sentuh, ukuran tombol, responsif), dan stabilitas. Beri skor 0-10 untuk tiap aspek dan rekomendasi. Maksimal 200 kata.','Spesifikasi:\n'+cut(PL.o[0],1200)+'\n\nKode akhir:\n'+cut(PL.code,4000),700);PL.o[5]=o;return o},
  async()=>{const t=await runTest(PL.code);PL.t2=t;const o=await ai(6,'Kamu validator akhir. Dari uji ulang otomatis setelah perbaikan dan laporan sebelumnya, nyatakan LULUS atau TIDAK LULUS dan daftar masalah kritis yang tersisa (jika ada). Maksimal 150 kata.','Uji awal: '+JSON.stringify(PL.t1)+'\nUji ulang: '+JSON.stringify(t)+'\n\nReview QA:\n'+cut(PL.o[5],800),500);const r=o+'\n\nData uji ulang: '+JSON.stringify(t);PL.o[6]=r;return r},
  async()=>{const o=await ai(7,'Tulis dokumentasi README.md: deskripsi, cara menjalankan (buka index.html di browser), fitur, struktur file, catatan versi, dan hasil validasi akhir. Maksimal 250 kata.','Spesifikasi:\n'+cut(PL.o[0],1500)+'\n\nValidasi akhir:\n'+cut(PL.o[6],600),800);PL.o[7]=o;return o}
 ];
@@ -441,6 +450,9 @@ function rrender(){const l=$('rl');l.textContent='';if(!RES.length){l.textConten
 rb.onclick=()=>{rp.classList.add('show');rrender()};$('rx').onclick=()=>rp.classList.remove('show');
 const kb=document.createElement('button'),kp=document.createElement('div');
 kb.className='chip';$('chips').prepend(kb);
+const sb=document.createElement('button');sb.className='chip';$('chips').prepend(sb);
+function sbl(){sb.textContent=ST.get('snd')=='off'?'🔇 Suara mati':'🔊 Suara aktif'}sbl();
+sb.onclick=()=>{ST.set('snd',ST.get('snd')=='off'?'on':'off');sbl();if(ST.get('snd')=='off'){speechSynthesis.cancel();PEND=0}else speak('Rook','Suara robot aktif.')};
 kp.id='kp';kp.innerHTML='<b>Pengaturan AI</b><div class="kt">Pilih penyedia lalu tempel API key. Disimpan hanya di browser ini dan hanya dikirim ke penyedia yang kamu pilih.</div><select id="kv"><option value="groq">Groq (key gsk_...)</option><option value="xai">xAI Grok (key xai-...)</option></select><input id="ki" type="password" placeholder="API key" autocomplete="off"><input id="km" placeholder="Model (kosongkan untuk bawaan)" autocomplete="off"><div id="kr"><button id="ks">Simpan &amp; tes</button><button id="kd">Hapus key</button><button id="kx">Hapus memori</button><button id="kc">Tutup</button></div><div id="kz"></div>';document.body.appendChild(kp);
 async function autoModel(){
  const r=await fetch(ST.get('gp')=='xai'?'https://api.x.ai/v1/models':'https://api.groq.com/openai/v1/models',{headers:{Authorization:'Bearer '+ST.get('gk')}});

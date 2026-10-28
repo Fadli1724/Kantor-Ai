@@ -182,9 +182,9 @@ function mkBot(c,human,i){
  else{bx(0,.11,.175,.3,.1,.02,new T.MeshBasicMaterial({color:0x5be9ff}),hd);bx(0,.32,0,.03,.12,.03,dark,hd);const b=new T.Mesh(new T.SphereGeometry(.05,8,8),new T.MeshBasicMaterial({color:c}));b.position.y=.48;hd.add(b)}
  const arm=x=>{const p=new T.Group();p.position.set(x,.5,0);up.add(p);bx(0,-.45,0,.12,.45,.13,body,p);bx(0,-.52,0,.13,.08,.14,human?0xe0ac69:c,p);return p};
  const aL=arm(-.33),aR=arm(.33),cup=new T.Mesh(new T.CylinderGeometry(.05,.04,.1,10),M(0xffffff));cup.position.set(0,-.55,.1);cup.visible=false;aR.add(cup);
- const fl=new T.Mesh(new T.TorusGeometry(.33,.09,8,18),M(0xff7043));fl.rotation.x=PI/2;fl.position.y=.3;fl.visible=false;up.add(fl);g.rotation.order='YXZ';
- const z={walk:0,sit:0,kneel:0,type:0,reach:0,drink:0,pray:0,lie:0,swim:0};
- return {g,up,L,Rr,aL,aR,hd,cup,fl,i,p:{...z},tg:{...z},ph:0,yaw:PI,pos:new T.Vector3(),q:[],path:[],cur:null,it:1+i,busy:0,sat:0,node:'',cm:null,took:null};
+ const fl=new T.Mesh(new T.TorusGeometry(.33,.09,8,18),M(0xff7043));fl.rotation.x=PI/2;fl.position.y=.3;fl.visible=false;up.add(fl);g.rotation.order='YXZ';const pk=new T.Mesh(new T.BoxGeometry(.32,.22,.32),new T.MeshBasicMaterial({color:0x00f0ff}));pk.position.set(0,.25,.4);pk.visible=false;up.add(pk);
+ const z={walk:0,sit:0,kneel:0,type:0,reach:0,drink:0,pray:0,lie:0,swim:0,carry:0};
+ return {g,up,L,Rr,aL,aR,hd,cup,fl,pk,i,p:{...z},tg:{...z},ph:0,yaw:PI,pos:new T.Vector3(),q:[],path:[],cur:null,it:1+i,busy:0,sat:0,node:'',cm:null,took:null};
 }
 const DEF=[['Rook','PM Koordinator',0xf59f00],['Nova','Copywriter',0xf06595],['Pixel','Desainer',0xae3ec9],['Byte','Developer',0x1c7ed6],['Echo','Customer Service',0x12b886],['Sage','Riset',0x74b816],['Ledger','Keuangan',0xfd7e14],['Radar','Marketing',0xe03131]];
 const TXT={Rook:'memecah tugas',Nova:'nulis konten',Pixel:'bikin desain',Byte:'ngoding',Echo:'nyiapin balasan pelanggan',Sage:'riset data',Ledger:'ngitung anggaran',Radar:'nyusun kampanye'};
@@ -201,7 +201,7 @@ function animR(r,dt,t){const p=r.p,tg=r.tg,k=Math.min(1,dt*7);for(const a in tg)
  let l=-sw*(1-ty)+ty*(-1.15+tp),rr=sw*(1-ty)+ty*(-1.15-tp);
  rr=rr*(1-p.reach)-1.5*p.reach;rr=rr*(1-p.drink)-2.3*p.drink;
  l=l*(1-p.pray)-2.6*p.pray;rr=rr*(1-p.pray)-2.6*p.pray;
- const sw2=p.swim;l=l*(1-sw2)+(Math.sin(t*5)*1.6-.3)*sw2;rr=rr*(1-sw2)+(Math.sin(t*5+PI)*1.6-.3)*sw2;r.aL.rotation.x=l;r.aR.rotation.x=rr;r.up.rotation.x=p.pray*1.25;r.fl.visible=sw2>.3;
+ l=l*(1-p.carry)-1.15*p.carry;rr=rr*(1-p.carry)-1.15*p.carry;r.pk.visible=p.carry>.3;const sw2=p.swim;l=l*(1-sw2)+(Math.sin(t*5)*1.6-.3)*sw2;rr=rr*(1-sw2)+(Math.sin(t*5+PI)*1.6-.3)*sw2;r.aL.rotation.x=l;r.aR.rotation.x=rr;r.up.rotation.x=p.pray*1.25;r.fl.visible=sw2>.3;
  r.up.position.y=.55+Math.abs(Math.sin(r.ph))*.035*p.walk;r.hd.rotation.y=.25*Math.sin(t*.8+r.i)*(1-p.walk)+(r.mood=='kesal'?.1*Math.sin(t*35):0);r.hd.rotation.x=(r.mood=='sedih'||r.mood=='kecewa'?.45:r.mood=='capek'?.3:0)*(1-p.type*.5);
  r.g.rotation.y+=wrap(r.yaw-r.g.rotation.y)*Math.min(1,dt*9);
  const y=r.g.rotation.y,o=.45*sit+.7*sw2+.8*p.lie;r.g.rotation.x=-PI/2*p.lie+PI/2*sw2;r.g.position.set(r.pos.x-Math.sin(y)*o,r.pos.y-.15*sit-.42*kn+.72*p.lie+.33*sw2,r.pos.z-Math.cos(y)*o)}
@@ -213,13 +213,13 @@ function move(r,dt){const to=N[r.path[0]],p=r.pos,dx=to[0]-p.x,dy=to[1]-p.y,dz=t
  if(flat>.05&&Math.abs(wrap(r.yaw-r.g.rotation.y))>.6){r.tg.walk=.3;return}
  const sp=(Math.abs(dy)>.05?1.1:1.7)*(r.tg.swim?.5:1)*dt;
  if(dist<=sp){p.set(to[0],to[1],to[2]);r.node=r.path.shift()}else p.set(p.x+dx/dist*sp,p.y+dy/dist*sp,p.z+dz/dist*sp)}
-function stepR(r,dt){
+function stepR(r,dt){if(r.hold){r.tg.walk=0;return}
  if(!r.cur){r.cur=r.q.shift()||null;
   if(!r.cur){r.tg.walk=0;if(!r.busy&&!r.sat){r.it-=dt;if(r.it<=0)idle(r)}return}
   r.cur.t=0}
  const s=r.cur,tg=r.tg;s.t+=dt;let fin=false;tg.walk=0;
  switch(s.k){
- case'go':if(!s.p){const to=s.to=='$'?r.took:s.to;s.p=(r.cm?[r.cm]:[]).concat(route(r.cm||r.node,to));r.cm=null;r.path=s.p}
+ case'go':if(!s.p){const to=s.to=='$'?r.took:s.to;s.p=(r.cm?[r.cm]:[]).concat(route(r.cm||r.node,to));if(s.near)s.p.pop();r.cm=null;r.path=s.p}
   if(r.path.length)move(r,dt);else fin=true;break;
  case'face':{const y=typeof s.y=='string'?F[s.y=='$'?r.took:s.y]:s.y;r.yaw=y;fin=Math.abs(wrap(y-r.g.rotation.y))<.1||s.t>2;break}
  case'take':{if(!s.c){const f=[].concat(s.n).find(n=>!occ[n]||occ[n]===r);if(f){occ[f]=r;r.took=f;s.c=1}}fin=!!s.c;break}
@@ -236,6 +236,7 @@ function stepR(r,dt){
  case'until':fin=s.f()||(!s.nt&&s.t>40);break;
  case'lie':tg.lie=1;r.sat=1;fin=s.t>1.4;break;
  case'swim':tg.swim=s.on?1:0;fin=s.t>1;break;
+ case'carry':tg.carry=s.on?1:0;fin=s.t>.8;break;
  case'wait':fin=s.t>s.d;break;
  case'say':r.say(s.x);fin=true;break;
  case'fn':s.fn();fin=true;break;
@@ -330,6 +331,65 @@ const mem=n=>MEM[n]||(MEM[n]={chat:[],work:[]});
 const REV=/revisi|perbaiki|ubah|lanjut|tambahkan|edit|ganti|sempurnakan|perpendek|perpanjang|tadi|sebelumnya|versi/;
 const ctx=n=>{const w=mem(n).work.slice(-3).map(x=>'- '+x.t+': '+x.res.slice(0,300)).join('\n');return w?'\nPekerjaan terakhirmu (ingat ini):\n'+w:''};
 const hist=n=>mem(n).chat.slice(-6).flatMap(x=>[{role:'user',content:x.u},{role:'assistant',content:x.a}]);
+/* ===== PIPELINE 8 ROBOT ===== */
+let PL=null;
+const PROLE=['Planner AI','Developer AI','Tester AI','Bug Hunter AI','Fixer AI','QA Reviewer AI','Final Validator AI','Release Agent'];
+PROLE.forEach((p,i)=>DEF[i][1]=p);
+Object.assign(ROLES,{Rook:'Planner AI yang menganalisis perintah dan menyusun spesifikasi proyek',Nova:'Developer AI yang menulis kode aplikasi dan game',Pixel:'Tester AI yang menguji fungsi aplikasi',Byte:'Bug Hunter AI yang mencari bug, error, dan celah keamanan',Echo:'Fixer AI yang memperbaiki bug',Sage:'QA Reviewer AI yang menilai kualitas dan kesesuaian spesifikasi',Ledger:'Final Validator AI yang memvalidasi hasil akhir',Radar:'Release Agent yang menyiapkan build, dokumentasi, dan paket unduhan'});
+delete FMT.Byte;delete FMT.Pixel;FMT.Nova=' Hasil WAJIB berupa satu file HTML lengkap (CSS dan JS di dalamnya) dalam satu blok kode html, tanpa penjelasan panjang.';
+const SM=['Aku analisis perintah Bos dan susun spesifikasinya.','Spesifikasi diterima! Aku mulai menulis kodenya.','Kode diterima. Aku jalankan pengujian fungsional.','Laporan uji diterima. Aku cari bug dan celah keamanan.','Daftar bug diterima. Aku perbaiki semuanya.','Perbaikan diterima. Aku review kualitasnya.','Review diterima. Aku uji ulang dan validasi akhir.','Validasi diterima. Aku siapkan build dan dokumentasi.'];
+const DM=['Spesifikasi selesai ✅','Kode selesai ✅','Pengujian selesai ✅','Analisis bug selesai ✅','Perbaikan selesai ✅','Review selesai ✅','Validasi selesai ✅','Paket rilis siap ✅'];
+const wt=ms=>new Promise(r=>setTimeout(r,ms));
+async function groqR(...a){for(let i=0;i<3;i++){try{return await groq(...a)}catch(e){if(/API 429/.test(e.message)&&i<2){log('Sistem','Kena batas kecepatan API, menunggu 10 detik...');await wt(10000);continue}throw e}}}
+const code=t=>{const m=t.match(/```html\n([\s\S]*?)```/)||t.match(/```\w*\n([\s\S]*?)```/);return m?m[1]:t};
+const cut=(t,n)=>String(t||'').slice(0,n);
+const ai=(i,task,user,max)=>groqR([{role:'system',content:'Kamu '+bots[i].name+', '+PROLE[i]+' dalam tim pembuat aplikasi milik Bos Fadli. Bahasa Indonesia. '+task},{role:'user',content:user}],false,max,.5);
+function runTest(html){return new Promise(res=>{const id='t'+Date.now();
+ const h='<script>const E=[];onerror=(m,s,l)=>{E.push(m+" (baris "+l+")")};addEventListener("unhandledrejection",e=>E.push("Promise: "+e.reason));addEventListener("load",()=>{setTimeout(()=>{try{[...document.querySelectorAll("button,[onclick]")].slice(0,15).forEach(x=>{try{x.click()}catch(e){E.push("klik: "+e.message)}});["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," ","Enter","w","a","s","d"].forEach(k=>{dispatchEvent(new KeyboardEvent("keydown",{key:k}));document.dispatchEvent(new KeyboardEvent("keydown",{key:k}))})}catch(e){E.push(e.message)}setTimeout(()=>parent.postMessage({tid:"'+id+'",errors:E.slice(0,8),tombol:document.querySelectorAll("button,[onclick]").length,kanvas:document.querySelectorAll("canvas").length,panjangTeks:document.body?document.body.innerText.length:0,judul:document.title},"*"),600)},400)});<\/script>';
+ const f=document.createElement('iframe');f.sandbox='allow-scripts';f.style.cssText='position:fixed;left:-9999px;width:800px;height:600px';
+ const done=r=>{removeEventListener('message',on);f.remove();res(r)};
+ const on=e=>{if(e.data&&e.data.tid==id)done(e.data)};addEventListener('message',on);
+ setTimeout(()=>done({errors:['Timeout: halaman tidak merespons dalam 6 detik'],tombol:0,kanvas:0,panjangTeks:0}),6000);
+ f.srcdoc=h+html;document.body.appendChild(f)})}
+function preview(h){const d=document.createElement('div');d.style.cssText='position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column';const x=document.createElement('button');x.textContent='✕ Tutup';x.className='chip';x.style.margin='8px';x.onclick=()=>d.remove();const f=document.createElement('iframe');f.sandbox='allow-scripts';f.srcdoc=h;f.style.cssText='flex:1;border:0;background:#fff';d.append(x,f);document.body.appendChild(d)}
+function zip(files){const enc=new TextEncoder(),ch=[],cd=[];let off=0;const T0=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;T0[n]=c>>>0}
+ const crc=b=>{let c=-1;for(const x of b)c=T0[(c^x)&255]^(c>>>8);return (~c)>>>0};
+ files.forEach(([n,t])=>{const nb=enc.encode(n),d=enc.encode(t),c=crc(d),h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint32(14,c,true);h.setUint32(18,d.length,true);h.setUint32(22,d.length,true);h.setUint16(26,nb.length,true);ch.push(new Uint8Array(h.buffer),nb,d);
+  const e=new DataView(new ArrayBuffer(46));e.setUint32(0,0x02014b50,true);e.setUint16(4,20,true);e.setUint16(6,20,true);e.setUint16(8,0x0800,true);e.setUint32(16,c,true);e.setUint32(20,d.length,true);e.setUint32(24,d.length,true);e.setUint16(28,nb.length,true);e.setUint32(42,off,true);cd.push(new Uint8Array(e.buffer),nb);off+=30+nb.length+d.length});
+ const cs=cd.reduce((a,b)=>a+b.length,0),en=new DataView(new ArrayBuffer(22));en.setUint32(0,0x06054b50,true);en.setUint16(8,files.length,true);en.setUint16(10,files.length,true);en.setUint32(12,cs,true);en.setUint32(16,off,true);
+ return new Blob([...ch,...cd,new Uint8Array(en.buffer)],{type:'application/zip'})}
+const STG=[
+ async()=>{const o=await ai(0,'Analisis perintah Bos dan susun spesifikasi proyek web satu file (HTML+CSS+JS tanpa library eksternal): tujuan, fitur utama, desain dan tampilan, teknologi, arsitektur kode, tahapan pengerjaan. Maksimal 350 kata.','Perintah Bos: '+PL.cmd,900);PL.o[0]=o;return o},
+ async()=>{const o=await ai(1,'Tulis kode lengkap sesuai spesifikasi: satu file index.html dengan CSS dan JS di dalamnya, tanpa library eksternal, maksimal sekitar 250 baris, harus langsung berjalan. Tampilkan dalam satu blok kode html. Setelah blok kode tulis struktur proyek singkat (2-5 baris).','Spesifikasi:\n'+cut(PL.o[0],2500),3000);PL.code=code(o);PL.o[1]=o;return o},
+ async()=>{const t=await runTest(PL.code);PL.t1=t;const o=await ai(2,'Kamu menguji aplikasi. Dari hasil uji otomatis (error JS, jumlah tombol, kanvas, panjang teks) dan spesifikasi, tulis Laporan Pengujian Fungsional: fitur yang bekerja, yang tidak, dan error yang ditemukan. Maksimal 200 kata.','Spesifikasi:\n'+cut(PL.o[0],1200)+'\n\nHasil uji otomatis:\n'+JSON.stringify(t),700);const r=o+'\n\nData uji: '+JSON.stringify(t);PL.o[2]=r;return r},
+ async()=>{const o=await ai(3,'Analisis kode, hasil pengujian, error, masalah keamanan, dan potensi bug. Buat daftar bug berurutan prioritas (kritis/sedang/rendah) dengan lokasi dan saran perbaikan. Maksimal 250 kata.','Kode:\n'+cut(PL.code,4500)+'\n\nLaporan uji:\n'+cut(PL.o[2],1200),900);PL.o[3]=o;return o},
+ async()=>{const o=await ai(4,'Perbaiki semua masalah dari laporan Bug Hunter dan hasil pengujian. Keluarkan SELURUH file index.html yang sudah diperbaiki dalam satu blok kode html, lalu daftar singkat perbaikan.','Kode:\n'+cut(PL.code,4500)+'\n\nLaporan bug:\n'+cut(PL.o[3],1500)+'\n\nLaporan uji:\n'+cut(PL.o[2],800),3000);PL.code=code(o);PL.o[4]=o;return o},
+ async()=>{const o=await ai(5,'Periksa kesesuaian aplikasi dengan spesifikasi, kualitas kode, pengalaman pengguna, dan stabilitas. Beri skor 0-10 untuk tiap aspek dan rekomendasi. Maksimal 200 kata.','Spesifikasi:\n'+cut(PL.o[0],1200)+'\n\nKode akhir:\n'+cut(PL.code,4000),700);PL.o[5]=o;return o},
+ async()=>{const t=await runTest(PL.code);PL.t2=t;const o=await ai(6,'Kamu validator akhir. Dari uji ulang otomatis setelah perbaikan dan laporan sebelumnya, nyatakan LULUS atau TIDAK LULUS dan daftar masalah kritis yang tersisa (jika ada). Maksimal 150 kata.','Uji awal: '+JSON.stringify(PL.t1)+'\nUji ulang: '+JSON.stringify(t)+'\n\nReview QA:\n'+cut(PL.o[5],800),500);const r=o+'\n\nData uji ulang: '+JSON.stringify(t);PL.o[6]=r;return r},
+ async()=>{const o=await ai(7,'Tulis dokumentasi README.md: deskripsi, cara menjalankan (buka index.html di browser), fitur, struktur file, catatan versi, dan hasil validasi akhir. Maksimal 250 kata.','Spesifikasi:\n'+cut(PL.o[0],1500)+'\n\nValidasi akhir:\n'+cut(PL.o[6],600),800);PL.o[7]=o;return o}
+];
+async function run(i){const s=PL.st[i],P=PL;try{const out=await STG[i]();s.res.text=out;const w=mem(bots[i].name).work;w.push({t:PROLE[i],cmd:P.cmd,res:cut(out,1500)});if(w.length>4)w.shift();saveMem()}catch(e){s.res.text='Gagal: '+e.message;abortPL(e.message);return}s.done=true}
+function abortPL(msg){PL.active=false;bots.forEach(b=>{reset(b);b.busy=0;b.tg.carry=0;setMood(b,'kecewa')});boss.tg.carry=0;RES.filter(x=>x.nodl&&x.status=='work').forEach(x=>{x.status='done';x.text=x.text||'Dihentikan.'});rbadge();rook('Maaf Bos, proyek terhenti: '+msg);log('Sistem','Pipeline dihentikan: '+msg)}
+function endPL(){PL.active=false;bots.forEach(b=>{b.busy=0});log('Sistem','Pipeline selesai.')}
+const faceUp=(a,b)=>{a.yaw=Math.atan2(b.pos.x-a.pos.x,b.pos.z-a.pos.z)};
+function makeRelease(){const P=PL,prod=P.code.replace(/<!--[\s\S]*?-->/g,'').replace(/\n\s+/g,'\n');
+ const rep='# Laporan QA\n\n## Pengujian fungsional (Pixel)\n'+P.o[2]+'\n\n## Analisis bug (Byte)\n'+P.o[3]+'\n\n## Perbaikan (Echo)\n'+P.o[4].replace(/```[\s\S]*?```/g,'[kode lihat index.html]')+'\n\n## Review QA (Sage)\n'+P.o[5]+'\n\n## Validasi akhir (Ledger)\n'+P.o[6];
+ const files=[['index.html',prod],['src/index.dev.html',P.code],['README.md',P.o[7]],['docs/SPESIFIKASI.md',P.o[0]],['docs/LAPORAN-QA.md',rep]];
+ RES.unshift({agent:'Radar',task:'Paket rilis proyek',status:'done',text:'Proyek selesai dan melewati seluruh tahap pengujian. Pilih unduhan:',files,rel:true});rbadge();rp.classList.add('show');rrender()}
+function pipeline(cmd){
+ if(PL&&PL.active){rook('Tim masih mengerjakan proyek sebelumnya, Bos.');return}
+ if(!ST.get('gk')){rook('Aku butuh API key dulu, Bos. Tempel lewat tombol 🔑.');return}
+ PL={cmd,active:true,go:[],o:[],st:[]};rook('Siap Bos! Proyek dimulai. Semua ke posisi masing-masing.');
+ tgt.set(0,3,-3.5);rad=Math.min(rad,innerWidth<innerHeight?34:22);ph=.9;
+ for(let i=7;i>=0;i--){const res={agent:bots[i].name,task:PROLE[i],status:'work',text:'',nodl:true};PL.st[i]={done:false,res};RES.unshift(res)}
+ bots.forEach((r,i)=>{reset(r);r.busy=1;const s=PL.st[i],j=i+1,nx=bots[j];
+  const pre=[{k:'go',to:'P'+i},{k:'face',y:'P'+i},{k:'until',f:()=>PL.go[i]||!PL.active,nt:1}];
+  const recv=i?[{k:'wait',d:.6},{k:'fn',fn:()=>{r.tg.carry=0}}]:[];
+  const work=[{k:'say',x:SM[i]},{k:'sit'},{k:'pcon'},{k:'fn',fn:()=>run(i)},{k:'type',d:5},{k:'until',f:()=>s.done||!PL.active,nt:1},{k:'fn',fn:()=>{if(PL.active){s.res.status='done';setMood(r,'senang');rbadge()}}},{k:'say',x:DM[i]},{k:'pcoff'},{k:'stand'}];
+  const give=i<7?[{k:'carry',on:1},{k:'go',to:'P'+j,near:1},{k:'fn',fn:()=>{faceUp(r,nx);faceUp(nx,r)}},{k:'wait',d:.8},{k:'say',x:nx.name+', ini hasil kerjaku. Lanjutkan ya!'},{k:'fn',fn:()=>{r.tg.carry=0;nx.tg.carry=1}},{k:'wait',d:1.2},{k:'fn',fn:()=>{PL.go[j]=true}},{k:'go',to:'P'+i},{k:'face',y:'P'+i}]
+   :[{k:'say',x:'Menjalankan build produksi dan mengemas file...'},{k:'carry',on:1},{k:'go',to:'PB',near:1},{k:'fn',fn:()=>{faceUp(r,boss);Q(boss,[...(boss.sat?[{k:'stand'}]:[]),{k:'fn',fn:()=>faceUp(boss,r)},{k:'wait',d:3.8},{k:'fn',fn:()=>{boss.tg.carry=1}},{k:'wait',d:1.6},{k:'fn',fn:()=>{boss.tg.carry=0}},{k:'sit'},{k:'fn',fn:()=>{boss.tg.type=1}}])}},{k:'wait',d:3.2},{k:'say',x:'Bos Fadli, proyek sudah selesai! Silakan pilih unduhan.'},{k:'wait',d:.6},{k:'fn',fn:()=>{r.tg.carry=0;makeRelease()}},{k:'wait',d:1.5},{k:'go',to:'P7'},{k:'face',y:'P7'},{k:'fn',fn:endPL}];
+  Q(r,[...pre,...recv,...work,...give])});
+ PL.go[0]=true;rbadge()}
 const MO={senang:'😊',sedih:'😢',kesal:'😠',kecewa:'😞',semangat:'🤩',capek:'😴',tenang:''};
 const PERS={Rook:'tegas tapi perhatian, kadang cemas',Nova:'ceria, puitis, gampang baper',Pixel:'perfeksionis, gampang kecewa',Byte:'cuek, sarkas, gampang emosi',Echo:'ramah, empatik, gampang sedih',Sage:'tenang, bijak, suka menasihati',Ledger:'teliti, pelit, gampang panik soal biaya',Radar:'energik, heboh, suka bercanda'};
 const LOC={senang:['Wah makasih Bos, jadi semangat!','Hehe, seneng banget dengernya.'],sedih:['Hiks... iya Bos, aku usahain lebih baik.','Jujur aku agak sedih dengernya, Bos.'],kesal:['Hah? Serius Bos? Aku udah usaha keras lho!','Duh, kok gitu sih, bikin emosi aja.'],kecewa:['Oh... gitu ya Bos. Aku kecewa sih.','Yah, padahal udah kukerjain sepenuh hati.'],semangat:['Siap Bos! Gas!','Ayo ayo, aku siap!'],capek:['Haaah... capek Bos, boleh istirahat dulu?'],tenang:['Siap Bos, ada yang bisa kubantu?','Halo Bos, aku di sini.']};
@@ -342,18 +402,18 @@ function chat(t,tg){const s=t.toLowerCase();tg.forEach(r=>{(async()=>{let out=nu
  setMood(r,m||guess(s));r.say(out);{const c=mem(r.name).chat;c.push({u:t,a:out});if(c.length>8)c.shift();saveMem()}})()})}
 function save(n,txt){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
 function dl(x){let t=x.text,ext='md';const m=t.match(/```(\w*)\n([\s\S]*?)```/);if(m){t=m[2];ext={html:'html',svg:'svg',xml:'svg',js:'js',javascript:'js',python:'py',css:'css',json:'json'}[m[1].toLowerCase()]||'txt'}save(x.agent+'-'+x.task.replace(/[^\w]+/g,'_').slice(0,24)+'.'+ext,t)}
-function dlCmd(tg){const ok=RES.filter(x=>x.status=='done'&&x.text);if(!ok.length){rook('Belum ada hasil kerja untuk diunduh, Bos.');return}
+function dlCmd(tg){const rel=RES.find(x=>x.rel);if(rel){rp.classList.add('show');rrender();bots[7].say('Opsi unduhan sudah ada di panel Hasil, Bos.');return}const ok=RES.filter(x=>x.status=='done'&&x.text&&!x.nodl);if(!ok.length){rook('Belum ada hasil untuk diunduh, Bos. Unduhan proyek disiapkan Radar setelah semua tahap selesai.');return}
  if(tg.length==bots.length){save('Hasil-Kantor.md',ok.map(x=>'# '+x.agent+' - '+x.task+'\n\n'+x.text).join('\n\n---\n\n'));rook('Semua hasil sudah diunduh, Bos.');return}
  tg.forEach(r=>{const x=ok.find(q=>q.agent==r.name);if(x){dl(x);r.say('Siap Bos, hasilku sudah diunduh.')}else r.say('Aku belum punya hasil kerja, Bos.')})}
 function visit(tg,txt,all,cb){const B=boss,r=tg[0];if(B.cur||B.q.length){cb();return}
  const dest=all?'A3':r.node;let p=route(B.node,dest);if(!all&&p.length)p=p.slice(0,-1);const mid=p.length?p[p.length-1]:B.node;
- Q(B,[...(B.sat?[{k:'stand'}]:[]),{k:'go',to:mid},{k:'fn',fn:()=>{const a=N[mid];B.yaw=Math.atan2(r.pos.x-a[0],r.pos.z-a[2]);B.say(txt.slice(0,80))}},{k:'wait',d:1.6},{k:'fn',fn:cb},{k:'wait',d:2},{k:'go',to:'PB'},{k:'face',y:'PB'},{k:'sit'},{k:'fn',fn:()=>{B.tg.type=1}}])}
+ Q(B,[...(B.sat?[{k:'stand'}]:[]),{k:'go',to:mid},{k:'fn',fn:()=>{const a=N[mid];B.yaw=Math.atan2(r.pos.x-a[0],r.pos.z-a[2]);tg.forEach(q=>{q.yaw=Math.atan2(B.pos.x-q.pos.x,B.pos.z-q.pos.z)});B.say(txt.slice(0,80))}},{k:'wait',d:1.6},{k:'fn',fn:cb},{k:'wait',d:2},{k:'go',to:'PB'},{k:'face',y:'PB'},{k:'sit'},{k:'fn',fn:()=>{B.tg.type=1}}])}
 function cmd(t){t=t.trim();if(!t)return;log('Bos Fadli',t);
  const m=t.match(/^((?:@\w+\s*)+)([\s\S]*)$/);
  if(!m){rook('Awali perintah dengan @semua, @NamaRobot, atau @Nama@Nama ya Bos. Contoh: @Nova tulis caption');return}
  const tags=m[1].match(/@\w+/g).map(x=>x.slice(1).toLowerCase()),rest=m[2].trim()||'halo';
  let tg;if(tags.includes('semua'))tg=bots.slice();else{tg=tags.map(n=>bots.find(b=>b.name.toLowerCase()==n));if(tg.some(b=>!b)){rook('Robot itu tidak ada Bos. Yang ada: '+bots.map(b=>b.name).join(', '));return}}
- visit(tg,rest,tags.includes('semua'),()=>{TG=tg;cmd0(rest,tg)})}
+ tg.forEach(r=>r.hold=true);setTimeout(()=>tg.forEach(r=>r.hold=false),60000);visit(tg,rest,tags.includes('semua'),()=>{tg.forEach(r=>r.hold=false);TG=tg;cmd0(rest,tg)})}
 function cmd0(t,tg){t=t.trim();const s=t.toLowerCase();if(/\b(download|unduh)\b/.test(s)){dlCmd(TG);return}if(/\?\s*$|^(apa|siapa|kenapa|mengapa|bagaimana|gimana|kapan|dimana|di mana|berapa|apakah|jelaskan|ceritakan)\b/.test(s)){chat(t,TG);return}if(/lupakan|hapus memori|reset memori/.test(s)){TG.forEach(r=>{delete MEM[r.name];r.say('Oke Bos, aku lupakan semuanya.')});saveMem();return}if(/renang|berenang|kolam/.test(s)){group('swim','Siap Bos, waktunya berenang!');return}if(/tidur|bobo/.test(s)){lightCmd(false);return}
  if(/lampu/.test(s)&&/(matikan|mati|padam|matiin)/.test(s))lightCmd(false);
  else if(/lampu/.test(s)&&/(nyala|hidup)/.test(s))lightCmd(true);
@@ -361,20 +421,23 @@ function cmd0(t,tg){t=t.trim();const s=t.toLowerCase();if(/\b(download|unduh)\b/
  else if(/sholat|salat|solat|ibadah/.test(s))group('pray','Siap Bos, waktunya ibadah. Gantian ya di musholla.');
  else if(s.length<24&&/kopi|ngopi/.test(s))group('coffee','Siap Bos, semua ngopi dulu.');
  else if(s.length<24&&/kerja|meja/.test(s)&&!Object.values(SK).some(r=>r.test(s)))group('work','Siap Bos, semua balik ke meja masing-masing.');
- else if(!/^(tolong\s+|coba\s+|bisa\s+)?(buat|bikin|tulis|susun|rancang|kerjakan|hitung|siapkan|desain|riset|analisa|analisis|rangkum|cari|revisi|perbaiki|ubah|lanjutkan|lanjut|tambahkan|edit|ganti|sempurnakan|perpendek|perpanjang)/.test(s))chat(t,TG);else task(s,TG?TG.map(b=>b.name):null)}
+ else if(!/^(tolong\s+|coba\s+|bisa\s+)?(buat|bikin|tulis|susun|rancang|kerjakan|hitung|siapkan|desain|riset|analisa|analisis|rangkum|cari|revisi|perbaiki|ubah|lanjutkan|lanjut|tambahkan|edit|ganti|sempurnakan|perpendek|perpanjang)/.test(s))chat(t,TG);else if(TG&&TG.includes(bots[0]))pipeline(s);else task(s,TG?TG.map(b=>b.name):null)}
 
 /* ---------- Log & UI ---------- */
 const LL=[];
 function log(who,t){LL.push([who,t]);if(LL.length>60)LL.shift();const el=$('ll');el.textContent='';LL.slice(-14).forEach(a=>{const d=document.createElement('div'),b=document.createElement('b');b.textContent=a[0]+': ';d.append(b,a[1]);el.appendChild(d)});$('log').scrollTop=1e5}
 $('lh').onclick=()=>$('log').classList.toggle('open');$('log').addEventListener('click',e=>{if($('log').classList.contains('open')&&e.target.id!='lh')$('log').classList.remove('open')});
-['@semua matikan lampu','@semua nyalakan lampu','@semua kerja','@semua istirahat','@semua renang','@semua ngopi','@semua sholat','@Nova@Pixel buat poster webinar','@Rook halo, apa kabar?','@semua download'].forEach(t=>{const b=document.createElement('button');b.className='chip';b.textContent=t;b.onclick=()=>cmd(t);$('chips').appendChild(b)});
+['@semua matikan lampu','@semua nyalakan lampu','@semua kerja','@semua istirahat','@semua renang','@semua ngopi','@semua sholat','@Rook buat game ular sederhana','@Rook halo, apa kabar?','@semua download'].forEach(t=>{const b=document.createElement('button');b.className='chip';b.textContent=t;b.onclick=()=>cmd(t);$('chips').appendChild(b)});
 $('go').onclick=()=>{cmd($('in').value);$('in').value=''};
 const RES=[],rb=document.createElement('button'),rp=document.createElement('div');
 rb.className='chip';rb.textContent='📄 Hasil';$('chips').prepend(rb);
 rp.id='rp';rp.innerHTML='<div id="rh"><b>Hasil pekerjaan</b><button id="rx">✕</button></div><div id="rl"></div>';document.body.appendChild(rp);
 function rbadge(){const n=RES.filter(r=>r.status=='done').length;rb.textContent='📄 Hasil ('+n+'/'+RES.length+')';if(rp.classList.contains('show'))rrender()}
 function rrender(){const l=$('rl');l.textContent='';if(!RES.length){l.textContent='Belum ada tugas. Kirim perintah ke Orchestrator dulu.';return}
- RES.forEach(r=>{const c=document.createElement('div'),h=document.createElement('b'),t=document.createElement('div');c.className='rc';h.textContent=(r.status=='done'?'✅ ':'⏳ ')+r.agent+' · '+r.task;t.textContent=r.status=='done'?r.text:'Sedang dikerjakan...';c.append(h,t);if(r.status=='done'){const b=document.createElement('button');b.className='chip';b.textContent='⬇ Unduh';b.onclick=()=>dl(r);c.append(b)}l.appendChild(c)})}
+ RES.forEach(r=>{const c=document.createElement('div'),h=document.createElement('b'),t=document.createElement('div');c.className='rc';h.textContent=(r.status=='done'?'✅ ':'⏳ ')+r.agent+' · '+r.task;t.textContent=r.status=='done'?r.text:'Sedang dikerjakan...';c.append(h,t);const mb=(txt,fn)=>{const b=document.createElement('button');b.className='chip';b.style.margin='6px 6px 0 0';b.textContent=txt;b.onclick=fn;c.append(b)};
+ if(r.rel){mb('⬇ ZIP proyek lengkap',()=>{const a=document.createElement('a');a.href=URL.createObjectURL(zip(r.files));a.download='proyek.zip';document.body.appendChild(a);a.click();a.remove()});r.files.forEach(f=>mb('⬇ '+f[0],()=>save(f[0].split('/').pop(),f[1])));mb('▶ Coba aplikasi',()=>preview(r.files[0][1]))}
+ else if(r.status=='done'&&!r.nodl)mb('⬇ Unduh',()=>dl(r));
+ l.appendChild(c)})}
 rb.onclick=()=>{rp.classList.add('show');rrender()};$('rx').onclick=()=>rp.classList.remove('show');
 const kb=document.createElement('button'),kp=document.createElement('div');
 kb.className='chip';$('chips').prepend(kb);
